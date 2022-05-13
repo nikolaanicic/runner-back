@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Contracts.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -21,5 +22,11 @@ namespace appDostava.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            throw new UnauthorizedException("cant access");
+        }
     }
 }
