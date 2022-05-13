@@ -14,6 +14,13 @@ namespace appDostava.Middleware
     public class ExceptionMiddleware : IMiddleware
     {
 
+        private ILoggerManager _logger;
+
+        public ExceptionMiddleware(ILoggerManager logger)
+        {
+            _logger = logger;
+        }
+
         public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
         {
             try
@@ -38,27 +45,11 @@ namespace appDostava.Middleware
                         break;
                 }
 
+                _logger.LogError(err.ToString());
+
                 httpContext.Response.StatusCode = err.StatusCode;
                 await httpContext.Response.WriteAsync(err.ToString());
             }
-        }
-
-
-        private Task HandleExceptionAsync(HttpContext httpContext,Exception exception)
-        {
-            httpContext.Response.ContentType = "application/json";
-            httpContext.Response.StatusCode = exception switch
-            {
-                HttpException e => e.HttpStatus,
-                _ => 500
-            };
-
-            return httpContext.Response.WriteAsync(
-                new ErrorDetails 
-                { 
-                    StatusCode = httpContext.Response.StatusCode, 
-                    Message = exception.Message }
-                .ToString());
         }
     }
 }
