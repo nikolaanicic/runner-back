@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Entities.DbModels
+namespace Contracts.Models
 {
     public class Role
     {

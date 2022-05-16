@@ -1,5 +1,5 @@
 ﻿
-namespace Entities.DbModels
+namespace Contracts.Models
 {
     public class Admin : User
     {

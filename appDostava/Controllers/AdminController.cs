@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace appDostava.Controllers
@@ -20,9 +17,23 @@ namespace appDostava.Controllers
     /// </summary>
 
 
-    [Route("api/admin")]
+    [Route("api/admins")]
     [ApiController]
     public class AdminController : ControllerBase
     {
+        private IAdminService _adminService;
+
+
+        public AdminController(IAdminService adminService)
+        {
+            _adminService = adminService;
+        }
+
+
+        [HttpGet("{username}")]
+        public async Task<IActionResult> GetAdmin(string username)
+        {
+            return Ok(await _adminService.GetByUsername(username));
+        }
     }
 }

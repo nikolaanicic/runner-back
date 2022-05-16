@@ -1,4 +1,5 @@
 ﻿using Contracts.Exceptions;
+using Contracts.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -23,10 +24,7 @@ namespace appDostava.Controllers
     public class UsersController : ControllerBase
     {
 
-        [HttpGet]
-        public IActionResult Get()
-        {
-            throw new UnauthorizedException("cant access");
-        }
+        private readonly IUserService _userService;
+     
     }
 }

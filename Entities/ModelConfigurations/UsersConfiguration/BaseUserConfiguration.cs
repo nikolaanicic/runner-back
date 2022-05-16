@@ -1,4 +1,4 @@
-﻿using Entities.DbModels;
+﻿using Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
@@ -13,7 +13,6 @@ namespace Entities.ModelConfigurations.UsersConfiguration
 
         protected void ConfigureCommon(EntityTypeBuilder<UserType> builder)
         {
-            builder.HasKey(u => u.Id);
             builder.Property(u => u.Id).ValueGeneratedOnAdd();
 
             builder.Property(u => u.Username).IsRequired().HasMaxLength(50);

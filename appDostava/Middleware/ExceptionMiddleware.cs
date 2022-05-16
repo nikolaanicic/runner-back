@@ -3,14 +3,17 @@ using Contracts.Exceptions;
 using Contracts.Logger;
 using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace appDostava.Middleware
 {
+    /// <summary>
+    /// This class is the exception middleware of the application
+    /// It should be inserted in the pipeline as soon as possible
+    /// This class picks up all of the exceptions thrown in the application
+    /// And translates exception objects to the object of the ErrorDetails class
+    /// </summary>
     public class ExceptionMiddleware : IMiddleware
     {
 
@@ -21,6 +24,16 @@ namespace appDostava.Middleware
             _logger = logger;
         }
 
+
+        /// <summary>
+        /// This method tries to invoke the next method in the request pipeline
+        /// If one of the methods in the pipeline throws and exception
+        /// That exception is handled by the catch branch of the InvokeAsync method code
+        /// 
+        /// </summary>
+        /// <param name="httpContext"></param>
+        /// <param name="next"></param>
+        /// <returns></returns>
         public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
         {
             try
@@ -33,12 +46,19 @@ namespace appDostava.Middleware
 
                 httpContext.Response.ContentType = "application/json";
                 
+
+                // This switch could be made simpler
+                // Try to pick up just the base exception HttpException
+
                 switch(ex)
                 {
                     case UnauthorizedException e:
                         err.StatusCode = e.HttpStatus;
                         break;
 
+                    case NotFoundException e:
+                        err.StatusCode = e.HttpStatus;
+                        break;
                     default:
 
                         err.StatusCode = (int)HttpStatusCode.InternalServerError;

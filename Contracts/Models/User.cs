@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Entities.DbModels
+namespace Contracts.Models
 {
     public abstract class User
     {

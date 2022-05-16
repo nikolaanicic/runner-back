@@ -16,6 +16,9 @@ using appDostava.Extensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using NLog;
 using System.IO;
+using Contracts.MappingProfile;
+using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace appDostava
 {
@@ -36,8 +39,16 @@ namespace appDostava
             services.ConfigureExceptionService();
             services.ConfigureCors(Configuration);
             services.ConfigureLoggerService();
+            services.ConfigureDatabase(Configuration);
+            services.ConfigureRepositoryManager();
+            
+            
+            services.AddAutoMapper(op => op.AddProfile(new MappingProfile()));
+            services.ConfigureControllerServices();
 
             services.AddControllers();
+                //.AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "appDostava", Version = "v1" });

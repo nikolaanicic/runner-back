@@ -1,4 +1,4 @@
-﻿using Entities.DbModels;
+﻿using Contracts.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,6 +9,7 @@ namespace Entities.ModelConfigurations.UsersConfiguration
         public override void Configure(EntityTypeBuilder<Consumer> builder)
         {
             builder.ToTable("Consumer");
+            builder.HasBaseType<User>();
             ConfigureCommon(builder);
         }
     }
