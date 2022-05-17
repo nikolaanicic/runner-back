@@ -17,9 +17,9 @@ namespace Entities.ModelConfigurations
 
 
             builder.HasData(
-                new Role { Id = 1, Rolename = "Admin" },
-                new Role { Id = 2, Rolename = "Consumer" },
-                new Role { Id = 3, Rolename = "Deliverer" });
+                new Role { Id = (long)Roles.Admin, Rolename = RolesConstants.Admin },
+                new Role { Id = (long)Roles.Consumer, Rolename = RolesConstants.Consumer },
+                new Role { Id = (long)Roles.Deliverer, Rolename = RolesConstants.Deliverer});
         }
     }
 }

@@ -47,25 +47,23 @@ namespace appDostava.Middleware
                 httpContext.Response.ContentType = "application/json";
                 
 
-                // This switch could be made simpler
-                // Try to pick up just the base exception HttpException
+                // switching just on the base exception
+                // because all of them carry the same data
+                // but this way service layer doesn't need to know the http status codes
 
                 switch(ex)
                 {
-                    case UnauthorizedException e:
+                    case HttpException e:
                         err.StatusCode = e.HttpStatus;
                         break;
 
-                    case NotFoundException e:
-                        err.StatusCode = e.HttpStatus;
-                        break;
                     default:
 
                         err.StatusCode = (int)HttpStatusCode.InternalServerError;
                         break;
                 }
 
-                _logger.LogError(err.ToString());
+                _logger.LogError($"RESPONSE STATUS:{err.StatusCode} RESPONSE MESSAGE:{err.Message}");
 
                 httpContext.Response.StatusCode = err.StatusCode;
                 await httpContext.Response.WriteAsync(err.ToString());

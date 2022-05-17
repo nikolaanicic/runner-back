@@ -1,15 +1,23 @@
-﻿using appDostava.Middleware;
+﻿using appDostava.Filters.LogFilter;
+using appDostava.Filters.ValidationFilter;
+using appDostava.Middleware;
+using Contracts.Dtos.User.Post;
+using Contracts.Images;
 using Contracts.Logger;
 using Contracts.Repository;
+using Contracts.Security;
 using Contracts.Services;
 using Entities.Context;
+using Entities.PasswordSecurity;
 using Entities.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services.AdminService;
+using Services.ImageService;
 using Services.LoggerService;
+using Services.UserService;
 
 namespace appDostava.Extensions
 {
@@ -46,7 +54,7 @@ namespace appDostava.Extensions
 
 
         /// <summary>
-        ///  Configueres custom exception handling middleware
+        ///  Configures custom exception handling middleware
         /// </summary>
         /// <param name="services"></param>
 
@@ -75,7 +83,15 @@ namespace appDostava.Extensions
 
         public static void ConfigureControllerServices(this IServiceCollection services)
         {
-            services.AddScoped<IAdminService, AdminManager>();
+            services.AddScoped<IAdminService, AdminManager>()
+                .AddScoped<IUserService,UserManager>()
+                .AddScoped<IImageService,ImageManager>()
+                .AddScoped<IPasswordChecker,PasswordManager>()
+                .AddScoped<IPasswordHasher,PasswordManager>();
         }
+
+        public static void ConfigureActionFilters(this IServiceCollection services) =>
+            services.AddScoped<DtoValidationFilter<PostUserDto>>()
+            .AddScoped<LogRoute>();
     }
 }

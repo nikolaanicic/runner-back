@@ -15,6 +15,7 @@ namespace Contracts.Repository.ModelRepositories.UserRepositories
         where T:User
     {
         Task<IEnumerable<T>> GetAllAsync(bool trackChanges);
-        Task<T> GetAsync(string username, bool trackChanges);
+        Task<T> GetByUsernameAsync(string username, bool trackChanges);
+        Task<T> GetByEmailAsync(string email, bool trackChanges);
     }
 }

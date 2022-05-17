@@ -1,7 +1,9 @@
 ﻿using Contracts.Security;
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Entities.PasswordSecurity
 {
@@ -12,9 +14,9 @@ namespace Entities.PasswordSecurity
     /// </summary>
     public class PasswordManager : IPasswordManager
     {
-        public bool CheckPassword(string plaintextPassword, string hashedPassword)
+        public async Task<bool> CheckPassword(string plaintextPassword, string hashedPassword)
         {
-            return hashedPassword.Equals(Hash(plaintextPassword));
+            return hashedPassword.Equals(await HashAsync(plaintextPassword));
         }
 
         public string HashPassword(string password)
@@ -22,9 +24,22 @@ namespace Entities.PasswordSecurity
             return Hash(password);
         }
 
-        private string Hash(string plaintext)
+        public async Task<string> HashPasswordAsync(string password)
+        {
+            return await HashAsync(password);
+        }
+
+        private async Task<string> HashAsync(string plaintext)
         {
             using(var alg = SHA256.Create())
+            {
+                return Convert.ToBase64String(await alg.ComputeHashAsync(new MemoryStream(Encoding.UTF8.GetBytes(plaintext))));
+            }
+        }
+
+        private string Hash(string plaintext)
+        {
+            using (var alg = SHA256.Create())
             {
                 return Convert.ToBase64String(alg.ComputeHash(Encoding.UTF8.GetBytes(plaintext)));
             }

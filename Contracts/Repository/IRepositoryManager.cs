@@ -1,5 +1,6 @@
 ﻿using Contracts.Repository.ModelRepositories;
 using Contracts.Repository.ModelRepositories.UserRepositories;
+using System.Threading.Tasks;
 
 namespace Contracts.Repository
 {
@@ -19,6 +20,6 @@ namespace Contracts.Repository
         IAdminRepository Admins { get; }
         IUserRepository Users { get; }
 
-        void SaveAsync();
+        Task SaveAsync();
     }
 }

@@ -3,6 +3,7 @@ using Contracts.Repository.ModelRepositories;
 using Contracts.Repository.ModelRepositories.UserRepositories;
 using Entities.Context;
 using Entities.SingletonRepositoryFactory;
+using System.Threading.Tasks;
 
 namespace Entities.Repository
 {
@@ -35,6 +36,6 @@ namespace Entities.Repository
 
         public IUserRepository Users => _factory.GetInstance<IUserRepository>(_context);
 
-        public void SaveAsync() => _context.SaveChangesAsync();
+        public async Task SaveAsync() => await _context.SaveChangesAsync();
     }
 }

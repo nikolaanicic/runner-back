@@ -41,8 +41,9 @@ namespace appDostava
             services.ConfigureLoggerService();
             services.ConfigureDatabase(Configuration);
             services.ConfigureRepositoryManager();
-            
-            
+
+            services.ConfigureActionFilters();
+
             services.AddAutoMapper(op => op.AddProfile(new MappingProfile()));
             services.ConfigureControllerServices();
 
@@ -66,7 +67,6 @@ namespace appDostava
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "appDostava v1"));
             }
-
 
 
             app.UseHttpsRedirection();

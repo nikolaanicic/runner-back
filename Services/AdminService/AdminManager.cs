@@ -2,6 +2,7 @@
 using Contracts.Dtos;
 using Contracts.Dtos.User.Get;
 using Contracts.Exceptions;
+using Contracts.Logger;
 using Contracts.Models;
 using Contracts.Repository;
 using Contracts.Services;
@@ -14,22 +15,15 @@ using System.Threading.Tasks;
 
 namespace Services.AdminService
 {
-    public class AdminManager : IAdminService
+    public class AdminManager :ModelServiceBase, IAdminService
     {
-
-        private IRepositoryManager _repo;
-        private IMapper _mapper;
-
-        public AdminManager(IRepositoryManager repo, IMapper mapper)
+        public AdminManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper) : base(logger, repository, mapper)
         {
-            _mapper = mapper;
-            _repo = repo;
         }
-
 
         public async Task<GetAdminDto> GetByUsername(string username)
         {
-            Admin admin = await _repo.Admins.GetAsync(username, false);
+            Admin admin = await _repository.Admins.GetByUsernameAsync(username, false);
             if (admin == null)
                 throw new NotFoundException($"Admin with the username:{username} is not found.");
 

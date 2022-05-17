@@ -37,8 +37,9 @@ namespace Entities.Repository.ModelRepositories.UserRepositores
         public async Task<IEnumerable<T>> GetAllAsync(bool trackChanges) =>
             await base.FindAll(trackChanges).OrderBy(u => u.Username).ToListAsync();
 
-        public async Task<T> GetAsync(string username, bool trackChanges) =>
+        public async Task<T> GetByUsernameAsync(string username, bool trackChanges) =>
             await base.FindByCondition(u => u.Username == username, trackChanges).FirstOrDefaultAsync();
 
+        public async Task<T> GetByEmailAsync(string email, bool trackChanges) => await base.FindByCondition(u => u.Email == email, trackChanges).FirstOrDefaultAsync();
     }
 }
