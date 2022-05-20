@@ -8,5 +8,6 @@ namespace Contracts.Models
     {
         public ProfileState State { get; set; }
         public List<Order> Orders { get; set; }
+        public bool Busy { get; set; }
     }
 }

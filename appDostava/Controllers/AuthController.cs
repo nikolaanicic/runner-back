@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using appDostava.Filters.LogFilter;
+using appDostava.Filters.ValidationFilter;
+using Contracts.Dtos.User.Post;
+using Contracts.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace appDostava.Controllers
@@ -21,7 +23,21 @@ namespace appDostava.Controllers
 
     [Route("api/auth")]
     [ApiController]
+    [ServiceFilter(typeof(LogRoute))]
     public class AuthController : ControllerBase
     {
+        private IClaimAdder _tokenGenerator;
+
+        public AuthController(IClaimAdder claimsAdder)
+        {
+            _tokenGenerator = claimsAdder;
+        }
+
+        [HttpPost("login")]
+        [ServiceFilter(typeof(DtoValidationFilter<PostUserLogInDto>))]
+        public async Task<IActionResult> LogIn([FromBody] PostUserLogInDto login)
+        {
+            return Ok(new { Token = await _tokenGenerator.LogIn(login) });
+        }
     }
 }

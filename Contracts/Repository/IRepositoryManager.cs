@@ -15,7 +15,7 @@ namespace Contracts.Repository
     {
         IConsumerRepository Consumers { get; }
         IDelivererRepository Deliverers { get; }
-        IProductRepository Items { get; }
+        IProductRepository Products { get; }
         IOrderRepository Orders { get; }
         IAdminRepository Admins { get; }
         IUserRepository Users { get; }

@@ -28,7 +28,7 @@ namespace Entities.Repository
 
         public IDelivererRepository Deliverers => _factory.GetInstance<IDelivererRepository>(_context);
 
-        public IProductRepository Items => _factory.GetInstance<IProductRepository>(_context);
+        public IProductRepository Products => _factory.GetInstance<IProductRepository>(_context);
 
         public IOrderRepository Orders => _factory.GetInstance<IOrderRepository>(_context);
 

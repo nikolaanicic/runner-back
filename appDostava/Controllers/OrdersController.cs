@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using appDostava.Filters.ValidationFilter;
+using Contracts.Dtos.Order.Post;
+using Contracts.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace appDostava.Controllers
 {
@@ -20,5 +25,29 @@ namespace appDostava.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
+
+        private IOrderService _orderService;
+
+        public OrdersController(IOrderService orderService)
+        {
+            _orderService = orderService;
+        }
+
+
+        [HttpPost]
+        //[Authorize(Roles="Consumer")]
+        [ServiceFilter(typeof(DtoValidationFilter<PostOrderDto>))]
+        public async Task<IActionResult> CreateOrder([FromBody] PostOrderDto newOrder)
+        {
+            await _orderService.CreateOrder(newOrder);
+            return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> AcceptOrder(long id)
+        {
+
+            return Ok();
+        }
     }
 }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Entities.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220514185011_AllTablesConfigured")]
-    partial class AllTablesConfigured
+    [Migration("20220520184259_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace Entities.Migrations
                 .HasAnnotation("ProductVersion", "5.0.17")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Entities.DbModels.Order", b =>
+            modelBuilder.Entity("Contracts.Models.Order", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -52,7 +52,7 @@ namespace Entities.Migrations
                     b.ToTable("Order");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Product", b =>
+            modelBuilder.Entity("Contracts.Models.Product", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -77,7 +77,7 @@ namespace Entities.Migrations
                     b.ToTable("Product");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Role", b =>
+            modelBuilder.Entity("Contracts.Models.Role", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -94,9 +94,26 @@ namespace Entities.Migrations
                         .IsUnique();
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            Rolename = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            Rolename = "Consumer"
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            Rolename = "Deliverer"
+                        });
                 });
 
-            modelBuilder.Entity("Entities.DbModels.User", b =>
+            modelBuilder.Entity("Contracts.Models.User", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -166,23 +183,38 @@ namespace Entities.Migrations
                     b.ToTable("OrderProduct");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Admin", b =>
+            modelBuilder.Entity("Contracts.Models.Admin", b =>
                 {
-                    b.HasBaseType("Entities.DbModels.User");
+                    b.HasBaseType("Contracts.Models.User");
 
                     b.ToTable("Admin");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            Address = "Korenita, Josifa Tronosca 25",
+                            DateOfBirth = new DateTime(1999, 12, 7, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "nikolaanicic99@gmail.com",
+                            ImagePath = "nema slike za sada",
+                            LastName = "Anicic",
+                            Name = "Nikola",
+                            PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            RoleId = 1L,
+                            Username = "admin"
+                        });
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Consumer", b =>
+            modelBuilder.Entity("Contracts.Models.Consumer", b =>
                 {
-                    b.HasBaseType("Entities.DbModels.User");
+                    b.HasBaseType("Contracts.Models.User");
 
                     b.ToTable("Consumer");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Deliverer", b =>
+            modelBuilder.Entity("Contracts.Models.Deliverer", b =>
                 {
-                    b.HasBaseType("Entities.DbModels.User");
+                    b.HasBaseType("Contracts.Models.User");
 
                     b.Property<int>("State")
                         .HasColumnType("int");
@@ -190,15 +222,15 @@ namespace Entities.Migrations
                     b.ToTable("Deliverer");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Order", b =>
+            modelBuilder.Entity("Contracts.Models.Order", b =>
                 {
-                    b.HasOne("Entities.DbModels.Consumer", "Consumer")
+                    b.HasOne("Contracts.Models.Consumer", "Consumer")
                         .WithMany("Orders")
                         .HasForeignKey("ConsumerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Entities.DbModels.Deliverer", "Deliverer")
+                    b.HasOne("Contracts.Models.Deliverer", "Deliverer")
                         .WithMany("Orders")
                         .HasForeignKey("DelivererId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -209,9 +241,9 @@ namespace Entities.Migrations
                     b.Navigation("Deliverer");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.User", b =>
+            modelBuilder.Entity("Contracts.Models.User", b =>
                 {
-                    b.HasOne("Entities.DbModels.Role", "Role")
+                    b.HasOne("Contracts.Models.Role", "Role")
                         .WithMany("UsersInRole")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -222,57 +254,57 @@ namespace Entities.Migrations
 
             modelBuilder.Entity("OrderProduct", b =>
                 {
-                    b.HasOne("Entities.DbModels.Order", null)
+                    b.HasOne("Contracts.Models.Order", null)
                         .WithMany()
                         .HasForeignKey("OrdersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Entities.DbModels.Product", null)
+                    b.HasOne("Contracts.Models.Product", null)
                         .WithMany()
                         .HasForeignKey("ProduceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Admin", b =>
+            modelBuilder.Entity("Contracts.Models.Admin", b =>
                 {
-                    b.HasOne("Entities.DbModels.User", null)
+                    b.HasOne("Contracts.Models.User", null)
                         .WithOne()
-                        .HasForeignKey("Entities.DbModels.Admin", "Id")
+                        .HasForeignKey("Contracts.Models.Admin", "Id")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Consumer", b =>
+            modelBuilder.Entity("Contracts.Models.Consumer", b =>
                 {
-                    b.HasOne("Entities.DbModels.User", null)
+                    b.HasOne("Contracts.Models.User", null)
                         .WithOne()
-                        .HasForeignKey("Entities.DbModels.Consumer", "Id")
+                        .HasForeignKey("Contracts.Models.Consumer", "Id")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Deliverer", b =>
+            modelBuilder.Entity("Contracts.Models.Deliverer", b =>
                 {
-                    b.HasOne("Entities.DbModels.User", null)
+                    b.HasOne("Contracts.Models.User", null)
                         .WithOne()
-                        .HasForeignKey("Entities.DbModels.Deliverer", "Id")
+                        .HasForeignKey("Contracts.Models.Deliverer", "Id")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Role", b =>
+            modelBuilder.Entity("Contracts.Models.Role", b =>
                 {
                     b.Navigation("UsersInRole");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Consumer", b =>
+            modelBuilder.Entity("Contracts.Models.Consumer", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("Entities.DbModels.Deliverer", b =>
+            modelBuilder.Entity("Contracts.Models.Deliverer", b =>
                 {
                     b.Navigation("Orders");
                 });

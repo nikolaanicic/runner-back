@@ -29,7 +29,7 @@ namespace Entities.Migrations
                     b.Property<long>("ConsumerId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("DelivererId")
+                    b.Property<long?>("DelivererId")
                         .HasColumnType("bigint");
 
                     b.Property<float>("DeliveryTimer")
@@ -214,6 +214,9 @@ namespace Entities.Migrations
                 {
                     b.HasBaseType("Contracts.Models.User");
 
+                    b.Property<bool>("Busy")
+                        .HasColumnType("bit");
+
                     b.Property<int>("State")
                         .HasColumnType("int");
 
@@ -231,8 +234,7 @@ namespace Entities.Migrations
                     b.HasOne("Contracts.Models.Deliverer", "Deliverer")
                         .WithMany("Orders")
                         .HasForeignKey("DelivererId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Consumer");
 

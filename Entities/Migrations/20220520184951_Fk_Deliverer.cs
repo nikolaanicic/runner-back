@@ -2,7 +2,7 @@
 
 namespace Entities.Migrations
 {
-    public partial class DatbaseBaseTypes : Migration
+    public partial class Fk_Deliverer : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

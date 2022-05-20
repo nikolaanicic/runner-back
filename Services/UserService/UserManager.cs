@@ -6,9 +6,8 @@ using Contracts.Images;
 using Contracts.Logger;
 using Contracts.Models;
 using Contracts.Repository;
-using Contracts.Security;
+using Contracts.Security.Passwords;
 using Contracts.Services;
-using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

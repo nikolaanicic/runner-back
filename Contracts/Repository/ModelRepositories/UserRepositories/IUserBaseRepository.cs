@@ -14,7 +14,6 @@ namespace Contracts.Repository.ModelRepositories.UserRepositories
     public interface IUserBaseRepository<T>:ICrudBase<T>
         where T:User
     {
-        Task<IEnumerable<T>> GetAllAsync(bool trackChanges);
         Task<T> GetByUsernameAsync(string username, bool trackChanges);
         Task<T> GetByEmailAsync(string email, bool trackChanges);
     }

@@ -46,6 +46,7 @@ namespace appDostava
 
             services.AddAutoMapper(op => op.AddProfile(new MappingProfile()));
             services.ConfigureControllerServices();
+            services.ConfigureJWT(Configuration);
 
             services.AddControllers();
                 //.AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
@@ -77,6 +78,8 @@ namespace appDostava
             app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.All });
             app.UseRouting();
 
+
+            app.UseAuthentication();
             app.UseAuthorization();
             app.ConfigureExceptionMiddleware();
 

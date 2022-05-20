@@ -15,8 +15,8 @@ namespace Contracts.Models
         public Consumer Consumer { get; set; }
         public long ConsumerId { get; set; }
 
-        public Deliverer Deliverer { get; set; }
-        public long DelivererId { get; set; }
+        public Deliverer? Deliverer { get; set; }
+        public long? DelivererId { get; set; }
 
         public List<Product> Produce { get; set; }
         public float TotalPrice { get; set; }

@@ -1,5 +1,5 @@
-﻿
-namespace Contracts.Security
+﻿namespace Contracts.Security.Passwords
+
 {
     public interface IPasswordManager: IPasswordChecker,IPasswordHasher
     {

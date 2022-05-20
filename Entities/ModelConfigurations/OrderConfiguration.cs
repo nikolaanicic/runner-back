@@ -28,7 +28,7 @@ namespace Entities.ModelConfigurations
 
             builder.HasOne(o => o.Deliverer)
                 .WithMany(d => d.Orders)
-                .HasForeignKey(o => o.DelivererId)
+                .HasForeignKey(o=>o.DelivererId)
                 .OnDelete(DeleteBehavior.Cascade);
         
         }

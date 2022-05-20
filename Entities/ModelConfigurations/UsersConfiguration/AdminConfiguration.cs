@@ -1,5 +1,5 @@
 ﻿using Contracts.Models;
-using Contracts.Security;
+using Contracts.Security.Passwords;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

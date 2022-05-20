@@ -1,7 +1,8 @@
 ﻿
 using System.Threading.Tasks;
 
-namespace Contracts.Security
+namespace Contracts.Security.Passwords
+
 {
     public interface IPasswordHasher
     {

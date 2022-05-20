@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Entities.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,10 +13,9 @@ namespace Entities.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
-                    Details = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    OrderId = table.Column<long>(type: "bigint", nullable: false)
+                    Details = table.Column<string>(type: "nvarchar(400)", maxLength: 400, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,7 +28,7 @@ namespace Entities.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Rolename = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Rolename = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -168,6 +167,31 @@ namespace Entities.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "Rolename" },
+                values: new object[] { 1L, "Admin" });
+
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "Rolename" },
+                values: new object[] { 2L, "Consumer" });
+
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "Rolename" },
+                values: new object[] { 3L, "Deliverer" });
+
+            migrationBuilder.InsertData(
+                table: "User",
+                columns: new[] { "Id", "Address", "DateOfBirth", "Email", "ImagePath", "LastName", "Name", "PasswordHash", "RoleId", "Username" },
+                values: new object[] { 1L, "Korenita, Josifa Tronosca 25", new DateTime(1999, 12, 7, 0, 0, 0, 0, DateTimeKind.Unspecified), "nikolaanicic99@gmail.com", "nema slike za sada", "Anicic", "Nikola", "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", 1L, "admin" });
+
+            migrationBuilder.InsertData(
+                table: "Admin",
+                column: "Id",
+                value: 1L);
+
             migrationBuilder.CreateIndex(
                 name: "IX_Order_ConsumerId",
                 table: "Order",
@@ -182,6 +206,12 @@ namespace Entities.Migrations
                 name: "IX_OrderProduct_ProduceId",
                 table: "OrderProduct",
                 column: "ProduceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Role_Rolename",
+                table: "Role",
+                column: "Rolename",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Email",

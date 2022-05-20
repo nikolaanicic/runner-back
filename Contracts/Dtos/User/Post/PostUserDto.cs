@@ -16,6 +16,7 @@ namespace Contracts.Dtos.User.Post
 
 
         [Required(AllowEmptyStrings = false,ErrorMessage = "Password is required")]
+        [PasswordValidation]
         public string Password { get; set; }
 
 

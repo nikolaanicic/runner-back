@@ -1,4 +1,4 @@
-﻿using Contracts.Security;
+﻿using Contracts.Security.Passwords;
 using System;
 using System.IO;
 using System.Security.Cryptography;

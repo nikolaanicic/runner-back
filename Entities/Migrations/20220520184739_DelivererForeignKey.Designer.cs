@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Entities.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20220516162716_DatbaseBaseTypes")]
-    partial class DatbaseBaseTypes
+    [Migration("20220520184739_DelivererForeignKey")]
+    partial class DelivererForeignKey
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -31,7 +31,7 @@ namespace Entities.Migrations
                     b.Property<long>("ConsumerId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("DelivererId")
+                    b.Property<long?>("DelivererId")
                         .HasColumnType("bigint");
 
                     b.Property<float>("DeliveryTimer")
@@ -233,8 +233,7 @@ namespace Entities.Migrations
                     b.HasOne("Contracts.Models.Deliverer", "Deliverer")
                         .WithMany("Orders")
                         .HasForeignKey("DelivererId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Consumer");
 
