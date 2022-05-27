@@ -1,21 +1,14 @@
 ﻿using Contracts.Dtos.User.Post.Validators;
-using Contracts.Models;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.ComponentModel.DataAnnotations;
 
-
-namespace Contracts.Dtos.User.Post
+namespace Contracts.Dtos.User.Patch
 {
-    public class PostUserDto
+    public class UserUpdateDto : PatchDtoValidator
     {
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Username is required")]
-        [MaxLength(50, ErrorMessage = "Username maximum length is 50 characters")]
-        public string Username { get; set; }
-
-
-        [Required(AllowEmptyStrings = false,ErrorMessage = "Password is required")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Password is required")]
         [PasswordValidation]
         public string Password { get; set; }
 
@@ -39,11 +32,7 @@ namespace Contracts.Dtos.User.Post
         [Required(AllowEmptyStrings = false, ErrorMessage = "Address is required")]
         public string Address { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Profile type is required")]
-        [RoleNameValidator(RolesConstants.Consumer,RolesConstants.Deliverer,
-            ErrorMessage = "RoleName must have one of the following values " + RolesConstants.Deliverer + ", " + RolesConstants.Consumer)]
-        public string RoleName { get; set; }
-
         public IFormFile Image { get; set; }
+
     }
 }

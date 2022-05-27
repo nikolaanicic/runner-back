@@ -6,26 +6,39 @@ using Contracts.Logger;
 using Contracts.Models;
 using Contracts.Repository;
 using Contracts.Services;
-using Entities.Repository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Services.AdminService
 {
+
+    /// <summary>
+    /// This class provides functionalities to the AdminController i.e. it provides 
+    /// functionalities for the administrators of the application
+    /// 
+    /// </summary>
     public class AdminManager :ModelServiceBase, IAdminService
     {
         public AdminManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper) : base(logger, repository, mapper)
         {
         }
 
+
+        /// <summary>
+        /// This method approves the account of the wanted deliverer
+        /// </summary>
+        /// <param name="deliverer"></param>
+        /// <returns></returns>
         public async Task ApproveAccountAsync(string deliverer)
         {
             await SetDelivrerState(deliverer, ProfileState.APPROVED);
         }
 
+
+        /// <summary>
+        /// This method rejects the account request of the wanted deliverer
+        /// </summary>
+        /// <param name="deliverer"></param>
+        /// <returns></returns>
         public async Task DisapproveAccountAsync(string deliverer)
         {
             await SetDelivrerState(deliverer, ProfileState.DENIED);

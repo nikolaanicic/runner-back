@@ -5,7 +5,7 @@ namespace Services
 {
 
     /// <summary>
-    /// This class is the basis of all the services
+    /// This class is the base of all the services
     /// </summary>
     public abstract class ServiceBase
     {

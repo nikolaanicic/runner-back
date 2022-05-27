@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Entities.Repository.ModelRepositories
 {
+
+    /// <summary>
+    /// Repository class for working with the Order entites in the database
+    /// </summary>
     public class OrderRepository : RepositoryBase<Order>, IOrderRepository
     {
         public OrderRepository(DatabaseContext context) : base(context)

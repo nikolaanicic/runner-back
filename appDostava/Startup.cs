@@ -19,6 +19,7 @@ using System.IO;
 using Contracts.MappingProfile;
 using System.Text.Json;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace appDostava
 {
@@ -48,8 +49,8 @@ namespace appDostava
             services.ConfigureControllerServices();
             services.ConfigureJWT(Configuration);
 
-            services.AddControllers();
-                //.AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+            services.AddControllers(config=>config.ReturnHttpNotAcceptable = true)
+                .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             services.AddSwaggerGen(c =>
             {
@@ -83,6 +84,12 @@ namespace appDostava
             app.UseAuthorization();
             app.ConfigureExceptionMiddleware();
 
+
+            app.Use(next => context =>
+              {
+                  context.Request.EnableBuffering();
+                  return next(context);
+              });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

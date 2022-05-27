@@ -25,6 +25,13 @@ namespace Services.ImageService
             _configuration = configuration;
         }
 
+
+        /// <summary>
+        /// Gets the path of users profile pic on the server
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+
         public async Task<string> Get(string username)
         {
             var user = await _repository.Users.GetByUsernameAsync(username, false);
@@ -34,6 +41,14 @@ namespace Services.ImageService
             return user.ImagePath;
         }
 
+
+        /// <summary>
+        /// This method saves a form file 
+        /// Uses the username to make the path unique and adds the encoding format as the file extension so the os handles the image encoding
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="username"></param>
+        /// <returns></returns>
         public async Task<string> Save(IFormFile image, string username)
         {
             string relativePath = _configuration["ImagesRelativePath"];

@@ -62,8 +62,7 @@ namespace appDostava.Controllers
 
         public async Task<IActionResult> AcceptOrder(long id)
         {
-            await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentUser"]));
-            return NoContent();
+            return Ok(await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentUser"])));
         }
 
 

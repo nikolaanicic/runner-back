@@ -1,9 +1,14 @@
-﻿using appDostava.Filters.LogFilter;
+﻿using appDostava.Filters.CurrentUser;
+using appDostava.Filters.LogFilter;
 using appDostava.Filters.ValidationFilter;
+using Contracts.Dtos.User.Patch;
 using Contracts.Dtos.User.Post;
 using Contracts.Exceptions;
+using Contracts.Models;
 using Contracts.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
@@ -25,6 +30,7 @@ namespace appDostava.Controllers
 
     [Route("api/users")]
     [ApiController]
+    [ServiceFilter(typeof(LogRoute))]
     public class UsersController : ControllerBase
     {
 
@@ -37,12 +43,20 @@ namespace appDostava.Controllers
 
 
         [HttpPost("register")]
-        [ServiceFilter(typeof(LogRoute))]
         [ServiceFilter(typeof(DtoValidationFilter<PostUserDto>))]
-
         public async Task<IActionResult> Register([FromBody]PostUserDto user)
         {
             await _userService.Register(user);
+            return NoContent();
+        }
+
+        [HttpPatch("update")]
+        [Authorize(Roles = RolesConstants.All)]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(JsonDocumentValidationFilter<UserUpdateDto>))]
+        public async Task<IActionResult> UpdateUser([FromBody] JsonPatchDocument<UserUpdateDto> patchDocument)
+        {
+            await _userService.UpdateUser(patchDocument, Convert.ToString(HttpContext.Items["currentUser"]));
             return NoContent();
         }
     }

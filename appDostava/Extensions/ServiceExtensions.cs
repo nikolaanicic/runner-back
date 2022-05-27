@@ -4,6 +4,7 @@ using appDostava.Filters.ValidationFilter;
 using appDostava.Middleware;
 using Contracts.Dtos.Order.Post;
 using Contracts.Dtos.Product.Post;
+using Contracts.Dtos.User.Patch;
 using Contracts.Dtos.User.Post;
 using Contracts.Images;
 using Contracts.Logger;
@@ -16,13 +17,13 @@ using Entities.PasswordSecurity;
 using Entities.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Services.AdminService;
 using Services.ClaimsService;
-using Services.DelivererService;
 using Services.ImageService;
 using Services.LoggerService;
 using Services.OrderService;
@@ -107,8 +108,7 @@ namespace appDostava.Extensions
                 .AddScoped<IProductService, ProductManager>()
                 .AddScoped<IOrderService, OrderManager>()
                 .AddScoped<IClaimChecker, ClaimsManager>()
-                .AddScoped<IClaimAdder, ClaimsManager>()
-                .AddScoped<IDelivererService,DelivererManager>();
+                .AddScoped<IClaimAdder, ClaimsManager>();
         }
 
 
@@ -147,6 +147,7 @@ namespace appDostava.Extensions
             .AddScoped<DtoValidationFilter<PostProductDto>>()
             .AddScoped<DtoValidationFilter<PostOrderDto>>()
             .AddScoped<DtoValidationFilter<PostUserLogInDto>>()
+            .AddScoped<JsonDocumentValidationFilter<UserUpdateDto>>()
             .AddScoped<GetCurrentUserFilter>()
             .AddScoped<LogRoute>();
     }

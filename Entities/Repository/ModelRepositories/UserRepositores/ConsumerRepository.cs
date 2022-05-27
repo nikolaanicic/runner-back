@@ -4,7 +4,7 @@ using Entities.Context;
 
 namespace Entities.Repository.ModelRepositories.UserRepositores
 {
-    public class ConsumerRepository :UserRepositoryBase<Consumer>, IConsumerRepository
+    public class ConsumerRepository : UserRepositoryBase<Consumer>, IConsumerRepository
     {
         public ConsumerRepository(DatabaseContext context) : base(context)
         {

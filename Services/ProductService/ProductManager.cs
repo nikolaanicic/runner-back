@@ -14,11 +14,16 @@ using System.Threading.Tasks;
 
 namespace Services.ProductService
 {
+
+    /// <summary>
+    /// This service class provides functionalities for working with the products in the application
+    /// </summary>
     public class ProductManager :ModelServiceBase, IProductService
     {
         public ProductManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper) : base(logger, repository, mapper)
         {
         }
+
 
         public async Task AddProduct(PostProductDto newProduct)
         {
@@ -31,6 +36,13 @@ namespace Services.ProductService
             return _mapper.Map<IEnumerable<GetProductDto>>(await _repository.Products.GetAllAsync(false));
         }
 
+
+        /// <summary>
+        /// This method removes a product
+        /// This is maybe not needed, check the specification
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task RemoveProduct(long id)
         {
             var product = await _repository.Products.GetByIdAsync(id, false);

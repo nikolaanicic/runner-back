@@ -1,7 +1,14 @@
-﻿using Contracts.Logger;
+﻿using Contracts.Dtos.User.Patch;
+using Contracts.Logger;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace appDostava.Filters.ValidationFilter
@@ -24,16 +31,15 @@ namespace appDostava.Filters.ValidationFilter
         }
 
 
-        public Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-
-
             var receivedModel = context.ActionArguments.SingleOrDefault(p => p.Value is T).Value;
+
 
             string message = string.Empty;
             if(receivedModel == null)
             {
-                message = $"Received object of type {nameof(T)} is null";
+                message = $"Received object of is null";
                 context.Result = new BadRequestObjectResult(message);
             }
             else if(!context.ModelState.IsValid)
@@ -44,9 +50,8 @@ namespace appDostava.Filters.ValidationFilter
 
             if (message != string.Empty)
                 _logger.LogError(message);
-
-
-            return next();
+            else
+                await next();
         }
     }
 }

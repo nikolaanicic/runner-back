@@ -12,5 +12,7 @@
         public const string ConsumerDeliverer = Consumer + "," + Deliverer;
 
         public const string AdminConsumer = Admin + "," + Consumer;
+
+        public const string All = Admin + "," + Consumer + "," + Deliverer;
     }
 }
