@@ -28,7 +28,7 @@ namespace Contracts.Dtos.User.Post.Validators
             try
             {
                 var matches = Regex.Match(password, passwordPattern);
-                if (matches.Length != 1)
+                if (matches.Captures.Count!= 1)
                     return new ValidationResult(message);
 
             }catch(Exception e)

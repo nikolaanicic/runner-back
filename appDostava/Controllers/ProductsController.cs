@@ -4,11 +4,7 @@ using Contracts.Dtos.Product.Post;
 using Contracts.Models;
 using Contracts.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace appDostava.Controllers
@@ -24,10 +20,8 @@ namespace appDostava.Controllers
 
     [Route("api/products")]
     [ApiController]
-    //[Authorize(Roles="Admin")]
     public class ProductsController : ControllerBase
     {
-
         private IProductService _productService;
 
         public ProductsController(IProductService productService)
@@ -37,21 +31,16 @@ namespace appDostava.Controllers
 
 
         [HttpGet("all")]
-        [Authorize(Roles = RolesConstants.Admin)]
-        [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [Authorize(Roles = RolesConstants.AdminConsumer)]
         public async Task<IActionResult> GetAll()
         {
-
-            var a = HttpContext.Items["currentUser"];
-
             return Ok(await _productService.GetProducts());
         }
 
 
-
-        [HttpPost]
-        [ServiceFilter(typeof(DtoValidationFilter<PostProductDto>))]
+        [HttpPost("add")]
         [Authorize(Roles = RolesConstants.Admin)]
+        [ServiceFilter(typeof(DtoValidationFilter<PostProductDto>))]
         public async Task<IActionResult> CreateProduct([FromBody]PostProductDto newProduct)
         {
             await _productService.AddProduct(newProduct);

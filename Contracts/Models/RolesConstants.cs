@@ -8,5 +8,9 @@
         public const string Admin = "Admin";
         public const string Consumer = "Consumer";
         public const string Deliverer = "Deliverer";
+
+        public const string ConsumerDeliverer = Consumer + "," + Deliverer;
+
+        public const string AdminConsumer = Admin + "," + Consumer;
     }
 }

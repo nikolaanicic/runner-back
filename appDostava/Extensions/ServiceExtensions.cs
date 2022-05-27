@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Services.AdminService;
 using Services.ClaimsService;
+using Services.DelivererService;
 using Services.ImageService;
 using Services.LoggerService;
 using Services.OrderService;
@@ -106,7 +107,8 @@ namespace appDostava.Extensions
                 .AddScoped<IProductService, ProductManager>()
                 .AddScoped<IOrderService, OrderManager>()
                 .AddScoped<IClaimChecker, ClaimsManager>()
-                .AddScoped<IClaimAdder, ClaimsManager>();
+                .AddScoped<IClaimAdder, ClaimsManager>()
+                .AddScoped<IDelivererService,DelivererManager>();
         }
 
 

@@ -13,6 +13,6 @@ namespace Contracts.Services
 
         Task AddProduct(PostProductDto newProduct);
         Task<IEnumerable<GetProductDto>> GetProducts();
-
+        Task RemoveProduct(long id);
     }
 }

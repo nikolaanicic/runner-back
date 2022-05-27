@@ -17,6 +17,7 @@ namespace Contracts.MappingProfile
             CreateMap<PostUserDto, User>().ForMember(u => u.Role, op => op.MapFrom(dto => new Role { Rolename = dto.RoleName }));
             CreateMap<PostUserDto, Consumer>();
             CreateMap<PostUserDto, Deliverer>();
+            CreateMap<Deliverer, GetDelivererDto>().ForMember(dto => dto.AccountState, op => op.MapFrom(d => d.State.ToString()));
             CreateMap<PostProductDto, Product>();
             CreateMap<Product, GetProductDto>();
             CreateMap<Order, GetOrderDto>()

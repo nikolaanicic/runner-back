@@ -30,7 +30,6 @@ namespace appDostava.Controllers
 
         private readonly IUserService _userService;
 
-
         public UsersController(IUserService userService)
         {
             _userService = userService;
@@ -46,10 +45,5 @@ namespace appDostava.Controllers
             await _userService.Register(user);
             return NoContent();
         }
-
-
-
-
-     
     }
 }

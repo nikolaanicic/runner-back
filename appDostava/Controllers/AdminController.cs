@@ -30,10 +30,20 @@ namespace appDostava.Controllers
         }
 
 
-        [HttpGet("{username}")]
-        public async Task<IActionResult> GetAdmin(string username)
+        [HttpPatch("approve/{username}")]
+        public async Task<IActionResult> ApproveDeliverer(string username)
         {
-            return Ok(await _adminService.GetByUsername(username));
+            await _adminService.ApproveAccountAsync(username);
+            return NoContent();
+
+        }
+
+
+        [HttpPatch("disapprove/{username}")]
+        public async Task<IActionResult> DisapproveDeliverer(string username)
+        {
+            await _adminService.DisapproveAccountAsync(username);
+            return NoContent();
         }
     }
 }

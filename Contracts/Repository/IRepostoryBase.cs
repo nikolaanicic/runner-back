@@ -29,7 +29,7 @@ namespace Contracts.Repository
         /// <param name="trackChanges"></param>
         /// <param name="children"></param>
         /// <returns></returns>
-        IQueryable<T> GetEntityEager(Expression<Func<T, bool>> condition, bool trackChanges, string[] children);
+        IQueryable<T> GetEntitiesEager(Expression<Func<T, bool>> condition, bool trackChanges, string[] children);
         void CreateEntity(T entity);
         void UpdateEntity(T entity);
         void DeleteEntity(T entity);

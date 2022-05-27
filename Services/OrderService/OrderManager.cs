@@ -8,8 +8,6 @@ using Contracts.Repository;
 using Contracts.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Services.OrderService
@@ -59,15 +57,46 @@ namespace Services.OrderService
                 throw new NotFoundException($"Requested order doesn't exist");
             else if (user == null)
                 throw new NotFoundException($"Deliverer {deliverer} doesn't exist");
+            else if (user.State != ProfileState.APPROVED)
+                throw new BadRequestException($"Your account is not yet approved");
 
             
             order.DelivererId = user.Id;
+            user.Busy = true;
             await _repository.SaveAsync();
         }
 
         public async Task<IEnumerable<GetOrderDto>> GetAllAsync()
         {
             return _mapper.Map<IEnumerable<GetOrderDto>>(await _repository.Orders.GetAllAsync(false));
+        }
+
+        public async Task<IEnumerable<GetOrderDto>> GetCompletedByUsernameAsync(string username)
+        {
+            var user = await _repository.Users.GetByUsernameAsync(username, false);
+
+            if (user == null)
+                throw new NotFoundException($"User {username} doesn't exist.");
+
+            IEnumerable<Order> orders = null;
+
+
+            if (user.RoleId == (long)Roles.Consumer)
+            {
+                return _mapper.Map<IEnumerable<GetOrderDto>>(await _repository.Orders.GetCompletedByConsumerAsync(user.Id, false));
+            }
+            else if (user.RoleId == (long)Roles.Deliverer)
+            {
+                return _mapper.Map<IEnumerable<GetOrderDto>>(await _repository.Orders.GetCompletedByDelivererAsync(user.Id, false));
+            }
+
+            throw new BadRequestException($"User{username} is not a Consumer or a Deliverer");
+
+        }
+
+        public async Task<IEnumerable<GetOrderDto>> GetActiveAsync()
+        {
+            return _mapper.Map<IEnumerable<GetOrderDto>>(await _repository.Orders.GetActiveAsync(false));
         }
     }
 }

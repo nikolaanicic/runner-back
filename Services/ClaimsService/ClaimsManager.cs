@@ -18,6 +18,10 @@ using System.Threading.Tasks;
 
 namespace Services.ClaimsService
 {
+
+    /// <summary>
+    /// This clas manages user claims
+    /// </summary>
     public class ClaimsManager : ServiceBase, IClaimManager
     {
 
@@ -31,11 +35,25 @@ namespace Services.ClaimsService
 
         }
 
+        /// <summary>
+        /// This method gets the username from the HttpContext
+        /// The username is embedded in user claims with the ClaimType.Name
+        /// Here we just get the claim with that type and the value associated with it
+        /// If there is no value the method returns an empty string
+        /// </summary>
+        /// <param name="currentContext"></param>
+        /// <returns></returns>
         public string GetCurrentUser(HttpContext currentContext)
         {
             return currentContext?.User?.Claims.First(c => c.Type == ClaimTypes.Name).Value ?? string.Empty;
         }
 
+
+        /// <summary>
+        /// This method logs users in i.e. it returns the token if the user exists and the password is correct
+        /// </summary>
+        /// <param name="login"></param>
+        /// <returns></returns>
         public async Task<string> LogIn(PostUserLogInDto login)
         {
             var user = await _repository.Users.GetWithRole(login.Username, false);
@@ -49,6 +67,13 @@ namespace Services.ClaimsService
         }
 
 
+        /// <summary>
+        /// This method actually creates the token
+        /// It configures jwtSecurityOptions, adds the valid issuer, users claims, expiration and signing credentials
+        /// secret_key is dotnet user_secret that is loaded in the configuration file in runtime
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         private string CreateToken(User user)
         {
 
@@ -67,6 +92,16 @@ namespace Services.ClaimsService
 
         }
 
+
+        /// <summary>
+        /// This method creates the claims list
+        /// Claims list contains users role and users username
+        /// Username is added with ClaimType.Name 
+        /// Role is added with ClaimType.Role
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="userRole"></param>
+        /// <returns></returns>
         private List<Claim> CreateClaims(string username,string userRole)
         {
             return new List<Claim> { new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, userRole) };

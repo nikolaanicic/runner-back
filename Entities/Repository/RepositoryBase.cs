@@ -42,7 +42,7 @@ namespace Entities.Repository
         public IQueryable<T> FindByCondition(Expression<Func<T, bool>> condition, bool trackChanges) =>
             trackChanges ? _context.Set<T>().Where(condition) : _context.Set<T>().Where(condition).AsNoTracking(); 
 
-        public IQueryable<T> GetEntityEager(Expression<Func<T, bool>> condition, bool trackChanges, string[] children)
+        public IQueryable<T> GetEntitiesEager(Expression<Func<T, bool>> condition, bool trackChanges, string[] children)
         {
             var query = trackChanges ? _context.Set<T>().Where(condition) : _context.Set<T>().Where(condition).AsNoTracking();
 

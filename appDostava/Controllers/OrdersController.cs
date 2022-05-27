@@ -1,9 +1,13 @@
-﻿using appDostava.Filters.ValidationFilter;
+﻿using appDostava.Filters.CurrentUser;
+using appDostava.Filters.LogFilter;
+using appDostava.Filters.ValidationFilter;
 using Contracts.Dtos.Order.Post;
+using Contracts.Models;
 using Contracts.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using System;
 using System.Threading.Tasks;
 
 namespace appDostava.Controllers
@@ -23,6 +27,7 @@ namespace appDostava.Controllers
 
     [Route("api/orders")]
     [ApiController]
+    [ServiceFilter(typeof(LogRoute))]
     public class OrdersController : ControllerBase
     {
 
@@ -33,9 +38,8 @@ namespace appDostava.Controllers
             _orderService = orderService;
         }
 
-
-        [HttpPost]
-        //[Authorize(Roles="Consumer")]
+        [HttpPost("create")]
+        [Authorize(Roles = RolesConstants.Consumer)]
         [ServiceFilter(typeof(DtoValidationFilter<PostOrderDto>))]
         public async Task<IActionResult> CreateOrder([FromBody] PostOrderDto newOrder)
         {
@@ -43,11 +47,38 @@ namespace appDostava.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id}")]
+
+        [HttpGet("completed")]
+        [Authorize(Roles = RolesConstants.ConsumerDeliverer)]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
+        public async Task<IActionResult> GetCompletedOrders()
+        {
+            return Ok(await _orderService.GetCompletedByUsernameAsync(Convert.ToString(HttpContext.Items["currentUser"])));
+        }
+
+        [HttpPatch("accept/{id}")]
+        [Authorize(Roles = RolesConstants.Deliverer)]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
+
         public async Task<IActionResult> AcceptOrder(long id)
         {
+            await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentUser"]));
+            return NoContent();
+        }
 
-            return Ok();
+
+        [HttpGet("all")]
+        [Authorize(Roles = RolesConstants.Admin)]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            return Ok(await _orderService.GetAllAsync());
+        }
+
+        [HttpGet("active")]
+        [Authorize(Roles = RolesConstants.Deliverer)]
+        public async Task<IActionResult> GetActiveOrders()
+        {
+            return Ok(await _orderService.GetActiveAsync());
         }
     }
 }

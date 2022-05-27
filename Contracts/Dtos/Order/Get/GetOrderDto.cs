@@ -9,6 +9,6 @@ namespace Contracts.Dtos.Order.Get
         public string Deliverer { get; set; }
         public string OrderStatus { get; set; }
         public float TotalPrice { get; set; }
-        public IEnumerable<GetProductDto> Produce { get; set; }
+        public List<GetProductDto> Produce { get; set; }
     }
 }

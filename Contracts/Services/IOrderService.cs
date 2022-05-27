@@ -9,6 +9,8 @@ namespace Contracts.Services
     {
         Task CreateOrder(PostOrderDto newOrder);
         Task<IEnumerable<GetOrderDto>> GetAllAsync();
-        Task AcceptOrderAsync(long id,string deliverer);
+        Task AcceptOrderAsync(long id, string deliverer);
+        Task<IEnumerable<GetOrderDto>> GetCompletedByUsernameAsync(string username);
+        Task<IEnumerable<GetOrderDto>> GetActiveAsync();
     }
 }

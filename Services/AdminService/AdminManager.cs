@@ -21,13 +21,27 @@ namespace Services.AdminService
         {
         }
 
-        public async Task<GetAdminDto> GetByUsername(string username)
+        public async Task ApproveAccountAsync(string deliverer)
         {
-            Admin admin = await _repository.Admins.GetByUsernameAsync(username, false);
-            if (admin == null)
-                throw new NotFoundException($"Admin with the username:{username} is not found.");
+            await SetDelivrerState(deliverer, ProfileState.APPROVED);
+        }
 
-            return _mapper.Map<GetAdminDto>(admin);
+        public async Task DisapproveAccountAsync(string deliverer)
+        {
+            await SetDelivrerState(deliverer, ProfileState.DENIED);
+        }
+
+        private async Task SetDelivrerState(string deliverer, ProfileState state)
+        {
+
+            var user = await _repository.Deliverers.GetByUsernameAsync(deliverer, true);
+
+            if (user == null)
+                throw new NotFoundException($"Deliverer {deliverer} doesn't exist.");
+
+            user.State = state;
+
+            await _repository.SaveAsync();
         }
     }
 }

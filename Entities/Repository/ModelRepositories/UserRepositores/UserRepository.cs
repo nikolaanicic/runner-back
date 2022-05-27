@@ -15,6 +15,6 @@ namespace Entities.Repository.ModelRepositories.UserRepositores
         }
 
         public async Task<User> GetWithRole(string username, bool trackChanges) =>
-            await base.GetEntityEager(u => u.Username == username, trackChanges, new string[1] { "Role" }).FirstOrDefaultAsync();
+            await base.GetEntitiesEager(u => u.Username == username, trackChanges, new string[1] { "Role" }).FirstOrDefaultAsync();
     }
 }
