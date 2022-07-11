@@ -1,12 +1,14 @@
 ﻿using appDostava.Filters.CurrentUser;
 using appDostava.Filters.LogFilter;
 using appDostava.Filters.ValidationFilter;
+using appDostava.HubConfig;
 using Contracts.Dtos.Order.Post;
 using Contracts.Models;
 using Contracts.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;
 
@@ -32,18 +34,33 @@ namespace appDostava.Controllers
     {
 
         private IOrderService _orderService;
+        private IHubContext<OrderHub> _hub;
 
-        public OrdersController(IOrderService orderService)
+        public OrdersController(IOrderService orderService , IHubContext<OrderHub> hub)
         {
             _orderService = orderService;
+            _hub = hub;
         }
+
+
+        [HttpPost("deliver")]
+        [Authorize(Roles = RolesConstants.Deliverer)]
+        [ServiceFilter(typeof(DtoValidationFilter<CompleteDeliveryDto>))]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
+        public async Task<IActionResult> CompleteDelivery([FromBody]CompleteDeliveryDto dto)
+        {
+            await _orderService.Deliver(dto, Convert.ToString(HttpContext.Items["currentUser"]));
+            return NoContent();
+        }
+
 
         [HttpPost("create")]
         [Authorize(Roles = RolesConstants.Consumer)]
         [ServiceFilter(typeof(DtoValidationFilter<PostOrderDto>))]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
         public async Task<IActionResult> CreateOrder([FromBody] PostOrderDto newOrder)
         {
-            await _orderService.CreateOrder(newOrder);
+            await _orderService.CreateOrder(newOrder, Convert.ToString(HttpContext.Items["currentUser"]));
             return NoContent();
         }
 
@@ -62,7 +79,9 @@ namespace appDostava.Controllers
 
         public async Task<IActionResult> AcceptOrder(long id)
         {
-            return Ok(await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentUser"])));
+            var res = await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentUser"]));
+            await _hub.Clients.User(res.Item2).SendAsync("pushTimer", new {Timer = res.Item1.Timer, Data = res.Item3 });
+            return Ok(res.Item1);
         }
 
 

@@ -1,5 +1,6 @@
 ﻿using System;
 
+
 namespace Contracts.Models
 {
     public abstract class User
@@ -15,6 +16,6 @@ namespace Contracts.Models
         public long RoleId { get; set; }
         public Role Role { get; set; }
         public string ImagePath { get; set; }
-
+        public string RefreshToken { get; set; }
     }
 }

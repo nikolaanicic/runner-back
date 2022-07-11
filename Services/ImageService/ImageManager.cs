@@ -45,14 +45,15 @@ namespace Services.ImageService
         /// <summary>
         /// This method saves a form file 
         /// Uses the username to make the path unique and adds the encoding format as the file extension so the os handles the image encoding
+        /// If the image with the same path already exists it will be overwritten
         /// </summary>
         /// <param name="image"></param>
         /// <param name="username"></param>
         /// <returns></returns>
         public async Task<string> Save(IFormFile image, string username)
         {
-            string relativePath = _configuration["ImagesRelativePath"];
-            string fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath, username) + _configuration["ImageEncodingFormat"];
+            string relativePath = Path.Combine(_configuration["ImagesRelativePath"], username) + _configuration["ImageEncodingFormat"];
+            string fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
             
             if(image != null && image.Length > 0)
             {
@@ -62,7 +63,7 @@ namespace Services.ImageService
                 }
             }
 
-            return fullPath;
+            return relativePath;
         }
     }
 }

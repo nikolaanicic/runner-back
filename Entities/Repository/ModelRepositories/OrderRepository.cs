@@ -23,10 +23,10 @@ namespace Entities.Repository.ModelRepositories
         public void Delete(Order entity) => base.DeleteEntity(entity);
 
         public async Task<IEnumerable<Order>> GetAllAsync(bool trackChanges) =>
-            await base.GetEntitiesEager(o=>o.Id==o.Id,trackChanges, new string[3] { "Produce", "Deliverer", "Consumer" }).OrderBy(o => o.Id).ToListAsync();
+            await base.GetEntitiesEager(o => o.Id == o.Id, trackChanges, new string[3] { "Produce", "Deliverer", "Consumer" }).OrderBy(o => o.Id).ToListAsync();
 
         public async Task<Order> GetByIdAsync(long id, bool trackChanges) =>
-            await base.FindByCondition(o => o.Id == id, trackChanges).FirstOrDefaultAsync();
+            await base.GetEntitiesEager(o => o.Id == id, trackChanges, new string[2] { "Consumer","Produce" }).FirstOrDefaultAsync();
 
         public async Task<IEnumerable<Order>> GetActiveAsync(bool trackChanges) =>
             await base.GetEntitiesEager(o => o.OrderStatus == OrderStatus.WAITING && o.Deliverer == null, trackChanges,new string[3] { "Produce","Deliverer","Consumer" }).OrderBy(o=>o.Id).ToListAsync();

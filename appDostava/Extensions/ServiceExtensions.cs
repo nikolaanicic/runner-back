@@ -2,6 +2,7 @@
 using appDostava.Filters.LogFilter;
 using appDostava.Filters.ValidationFilter;
 using appDostava.Middleware;
+using Contracts.Configuration.Email;
 using Contracts.Dtos.Order.Post;
 using Contracts.Dtos.Product.Post;
 using Contracts.Dtos.User.Patch;
@@ -16,20 +17,24 @@ using Entities.Context;
 using Entities.PasswordSecurity;
 using Entities.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Services.AdminService;
 using Services.ClaimsService;
+using Services.EmailService;
 using Services.ImageService;
 using Services.LoggerService;
 using Services.OrderService;
 using Services.ProductService;
 using Services.UserService;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace appDostava.Extensions
 {
@@ -49,13 +54,12 @@ namespace appDostava.Extensions
             {
                 options.AddPolicy("DefaultPolicy", builder =>
                 {
-                    //builder.WithOrigins(configuration["AllowedOrigin"])
-                    //.AllowAnyHeader().AllowAnyMethod();
-
-                    builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                    builder.WithOrigins(configuration["AllowedOrigin"])
+                    .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                 
                 });
             });
+
         }
 
         /// <summary>
@@ -113,6 +117,12 @@ namespace appDostava.Extensions
 
 
 
+        /// <summary>
+        /// This method configures jwt handler and configures google sign in
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAuthentication(opt =>
@@ -131,9 +141,49 @@ namespace appDostava.Extensions
                     ValidIssuer = configuration["ValidIssuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["secret_key"]))
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if(context.Request.Query.ContainsKey("access_token"))
+                        {
+                            var token = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/order"))
+                            {
+                                context.Token = token.ToString().Replace("Bearer ", "");
+                            }
+
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+            }).AddGoogle("google",opt=>
+            {
+                var googleAuth = configuration.GetSection("Authentication:Google");
+
+                opt.ClientId = googleAuth["ClientId"];
+                opt.ClientSecret = googleAuth["ClientSecret"];
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                
             });
         }
 
+
+        /// <summary>
+        /// This method configures emailing server used to contact the deliverers about the status of their accounts
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void ConfigureEmailServer(this IServiceCollection services,IConfiguration configuration)
+        {
+            var emailConfig = configuration
+                .GetSection("EmailConfiguration")
+                .Get<EmailConfiguration>();
+            services.AddSingleton(emailConfig);
+        }
 
 
         /// <summary>
@@ -148,7 +198,24 @@ namespace appDostava.Extensions
             .AddScoped<DtoValidationFilter<PostOrderDto>>()
             .AddScoped<DtoValidationFilter<PostUserLogInDto>>()
             .AddScoped<JsonDocumentValidationFilter<UserUpdateDto>>()
+            .AddScoped<DtoValidationFilter<RefreshTokenPostDto>>()
+            .AddScoped<DtoValidationFilter<CompleteDeliveryDto>>()
             .AddScoped<GetCurrentUserFilter>()
-            .AddScoped<LogRoute>();
+            .AddScoped<LogRoute>()
+            .AddScoped<IEmailService,EmailManager>();
+
+
+        public static void ConfigureIIS(this IServiceCollection services) =>
+            services.Configure<IISServerOptions>(o => 
+            { 
+                o.MaxRequestBodySize = int.MaxValue; 
+            })
+            .Configure<FormOptions>(o=> 
+            {
+                o.ValueLengthLimit = int.MaxValue;
+                o.MultipartBodyLengthLimit = int.MaxValue;
+                o.MultipartHeadersLengthLimit = int.MaxValue;
+            
+            });
     }
 }

@@ -1,25 +1,18 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 using appDostava.Extensions;
-using Microsoft.AspNetCore.HttpOverrides;
 using NLog;
 using System.IO;
 using Contracts.MappingProfile;
-using System.Text.Json;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
+using Contracts.Logger;
+using appDostava.HubConfig;
 
 namespace appDostava
 {
@@ -30,15 +23,19 @@ namespace appDostava
             // configures NLog with the configuration given in the nlog.config file
             LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
             Configuration = configuration;
+            
         }
 
         public IConfiguration Configuration { get; }
+        public ILoggerManager logger { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.ConfigureExceptionService();
             services.ConfigureCors(Configuration);
+
+            services.ConfigureIIS();
             services.ConfigureLoggerService();
             services.ConfigureDatabase(Configuration);
             services.ConfigureRepositoryManager();
@@ -49,9 +46,12 @@ namespace appDostava
             services.ConfigureControllerServices();
             services.ConfigureJWT(Configuration);
 
+            services.ConfigureEmailServer(this.Configuration);
+            services.AddSignalR();
             services.AddControllers(config=>config.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "appDostava", Version = "v1" });
@@ -71,12 +71,8 @@ namespace appDostava
             }
 
 
-            app.UseHttpsRedirection();
-
-            app.UseStaticFiles();
             app.UseCors("DefaultPolicy");
-
-            app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.All });
+            app.ConfigureStaticFilesServing();
             app.UseRouting();
 
 
@@ -93,7 +89,9 @@ namespace appDostava
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<OrderHub>("/order");
             });
+
         }
     }
 }

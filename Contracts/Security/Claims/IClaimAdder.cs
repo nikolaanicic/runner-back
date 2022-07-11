@@ -1,10 +1,12 @@
-﻿using Contracts.Dtos.User.Post;
+﻿using Contracts.Dtos.Login;
+using Contracts.Dtos.User.Post;
 using System.Threading.Tasks;
 
 namespace Contracts.Security.Claims
 {
     public interface IClaimAdder
     {
-        Task<string> LogIn(PostUserLogInDto login);
+        Task<LoginResponseDto> LogIn(PostUserLogInDto login);
+        Task<LoginResponseDto> RefreshToken(RefreshTokenPostDto refreshDto);
     }
 }

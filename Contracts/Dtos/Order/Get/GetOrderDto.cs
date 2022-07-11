@@ -12,5 +12,7 @@ namespace Contracts.Dtos.Order.Get
         public string OrderStatus { get; set; }
         public float TotalPrice { get; set; }
         public List<GetProductDto> Produce { get; set; }
+        public string Comment { get; set; }
+        public string Address { get; set; }
     }
 }

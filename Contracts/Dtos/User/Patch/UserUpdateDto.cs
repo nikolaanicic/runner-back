@@ -1,5 +1,4 @@
 ﻿using Contracts.Dtos.User.Post.Validators;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -12,11 +11,9 @@ namespace Contracts.Dtos.User.Patch
         [PasswordValidation]
         public string Password { get; set; }
 
-
         [Required(AllowEmptyStrings = false, ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Not a valid email")]
         public string Email { get; set; }
-
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Name is required")]
         [MaxLength(50, ErrorMessage = "Name maximum length is 50 characters")]
@@ -31,8 +28,6 @@ namespace Contracts.Dtos.User.Patch
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Address is required")]
         public string Address { get; set; }
-
-        public IFormFile Image { get; set; }
 
     }
 }

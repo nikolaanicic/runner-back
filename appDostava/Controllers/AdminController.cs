@@ -1,4 +1,5 @@
-﻿using Contracts.Services;
+﻿using Contracts.Models;
+using Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -19,6 +20,7 @@ namespace appDostava.Controllers
 
     [Route("api/admins")]
     [ApiController]
+    [System.Web.Http.Authorize(Roles = RolesConstants.Admin)]
     public class AdminController : ControllerBase
     {
         private IAdminService _adminService;
@@ -36,6 +38,12 @@ namespace appDostava.Controllers
             await _adminService.ApproveAccountAsync(username);
             return NoContent();
 
+        }
+
+        [HttpGet("pending")]
+        public async Task<IActionResult> GetPendingRequests()
+        {
+            return Ok(await _adminService.GetPendingDeliverers());
         }
 
 

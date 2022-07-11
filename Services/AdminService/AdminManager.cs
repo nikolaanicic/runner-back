@@ -6,6 +6,7 @@ using Contracts.Logger;
 using Contracts.Models;
 using Contracts.Repository;
 using Contracts.Services;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Services.AdminService
@@ -18,8 +19,12 @@ namespace Services.AdminService
     /// </summary>
     public class AdminManager :ModelServiceBase, IAdminService
     {
-        public AdminManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper) : base(logger, repository, mapper)
+
+        private IEmailService _emailManager;
+
+        public AdminManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper,IEmailService email) : base(logger, repository, mapper)
         {
+            _emailManager = email;
         }
 
 
@@ -42,6 +47,12 @@ namespace Services.AdminService
         public async Task DisapproveAccountAsync(string deliverer)
         {
             await SetDelivrerState(deliverer, ProfileState.DENIED);
+            
+        }
+
+        public async Task<IEnumerable<GetDelivererDto>> GetPendingDeliverers()
+        {
+            return _mapper.Map<IEnumerable<GetDelivererDto>>(await _repository.Deliverers.GetPendingDeliverers(false));
         }
 
         private async Task SetDelivrerState(string deliverer, ProfileState state)
@@ -55,6 +66,12 @@ namespace Services.AdminService
             user.State = state;
 
             await _repository.SaveAsync();
+
+            await _emailManager.SendEmail(new Contracts.Dtos.Email.Message(user.Email, $"{state.ToString().ToUpper()} REQUEST", state == ProfileState.APPROVED ?
+                $"Dear {user.Name} {user.LastName},\n\t\twe are happy to inform you that your deliverer registration request has been successfully approved by the admin team at runner.\n\t\t" +
+                $"Welcome aboard." :
+                $"Dear {user.Name} {user.LastName},\n\t\twe are sorry to inform you that your deliverer registration request has been denied by our admin team at runner.\n\t\t"
+                ));
         }
     }
 }

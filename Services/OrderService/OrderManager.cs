@@ -2,10 +2,12 @@
 using Contracts.Dtos.Order.Get;
 using Contracts.Dtos.Order.Post;
 using Contracts.Exceptions;
+using Contracts.HubConfig;
 using Contracts.Logger;
 using Contracts.Models;
 using Contracts.Repository;
 using Contracts.Services;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,7 @@ namespace Services.OrderService
     /// </summary>
     public class OrderManager : ModelServiceBase, IOrderService
     {
+
         public OrderManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper) : base(logger, repository, mapper)
         {
         }
@@ -35,21 +38,21 @@ namespace Services.OrderService
         /// </summary>
         /// <param name="newOrder"></param>
         /// <returns></returns>
-        public async Task CreateOrder(PostOrderDto newOrder)
+        public async Task CreateOrder(PostOrderDto newOrder,string consumer)
         {
 
             Random r = new Random();
             Order o = new Order();
 
             IEnumerable<Product> products = await _repository.Products.GetByIdsAsync(newOrder.ProductIds,false);
-            var consumer = await _repository.Consumers.GetByUsernameAsync(newOrder.Consumer,false);
+            var user = await _repository.Consumers.GetByUsernameAsync(consumer,false);
 
-            if (consumer == null)
-                throw new NotFoundException($"User {newOrder.Consumer} doesn't exist");
+            if (user == null)
+                throw new NotFoundException($"User {consumer} doesn't exist");
             else if (products.Count() == 0)
                 throw new BadRequestException($"Please specify available products");
 
-            o.ConsumerId = consumer.Id;
+            o.ConsumerId = user.Id;
             _repository.Orders.Create(o);
                 
             o.Produce = (List<Product>)products;
@@ -59,6 +62,8 @@ namespace Services.OrderService
 
             o.OrderStatus = OrderStatus.WAITING;
             o.DeliveryTimer = (float)r.Next(10, 60);
+            o.Comment = newOrder.Comment;
+            o.Address = newOrder.Address;   
 
             await _repository.SaveAsync();
         }
@@ -74,7 +79,7 @@ namespace Services.OrderService
         /// <param name="id"></param>
         /// <param name="deliverer"></param>
         /// <returns></returns>
-        public async Task<AcceptOrderDto> AcceptOrderAsync(long id, string deliverer)
+        public async Task<Tuple<AcceptOrderDto,string,GetOrderDto>> AcceptOrderAsync(long id, string deliverer)
         {
 
             var order = await _repository.Orders.GetByIdAsync(id, true);
@@ -88,13 +93,20 @@ namespace Services.OrderService
                 throw new BadRequestException($"Your account is not yet approved");
             else if (user.Busy)
                 throw new BadRequestException($"You haven't completed your active delivery");
+            else if(order.DelivererId != null || order.OrderStatus != OrderStatus.WAITING)
+                throw new BadRequestException($"Order is already accepted");
 
-            
+
+
             order.DelivererId = user.Id;
+            order.OrderStatus = OrderStatus.DELIVERING;
+
             user.Busy = true;
             await _repository.SaveAsync();
 
-            return new AcceptOrderDto { Timer = order.DeliveryTimer };
+            var dto = new AcceptOrderDto { Timer = order.DeliveryTimer };
+            
+            return new Tuple<AcceptOrderDto,string,GetOrderDto>(dto,order.Consumer.Id.ToString(),_mapper.Map<GetOrderDto>(order));
         }
 
 
@@ -149,6 +161,34 @@ namespace Services.OrderService
         public async Task<IEnumerable<GetOrderDto>> GetActiveAsync()
         {
             return _mapper.Map<IEnumerable<GetOrderDto>>(await _repository.Orders.GetActiveAsync(false));
+        }
+
+
+
+        /// <summary>
+        /// This method is called from the frontend when the timer of the delivere ticks to zero
+        /// This method completes the delivery with the id dto.DeliveryId for the given deliverer profile
+        /// This methods frees the deliverer who was delivering the order and makes that deliverer available to accept new orders
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <param name="deliverer"></param>
+        /// <returns></returns>
+        public async Task Deliver(CompleteDeliveryDto dto, string deliverer)
+        {
+            var user = await _repository.Deliverers.GetByUsernameAsync(deliverer, true);
+
+            if (user == null)
+                throw new NotFoundException($"Deliverer {deliverer} is not found");
+
+            var order = await _repository.Orders.GetByIdAsync(dto.DeliveryId, true);
+            if (order == null)
+                throw new BadRequestException($"Delivery with the id {dto.DeliveryId} doesn't exist");
+
+
+            order.OrderStatus = OrderStatus.DELIVERED;
+            user.Busy = false;
+
+            await _repository.SaveAsync();
         }
     }
 }

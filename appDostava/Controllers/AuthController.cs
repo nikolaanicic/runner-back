@@ -37,7 +37,15 @@ namespace appDostava.Controllers
         [ServiceFilter(typeof(DtoValidationFilter<PostUserLogInDto>))]
         public async Task<IActionResult> LogIn([FromBody] PostUserLogInDto login)
         {
-            return Ok(new { Token = await _tokenGenerator.LogIn(login) });
+            return Ok(await _tokenGenerator.LogIn(login));
+        }
+
+
+        [HttpPost("refresh")]
+        [ServiceFilter(typeof(DtoValidationFilter<RefreshTokenPostDto>))]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenPostDto dto)
+        {
+            return Ok(await _tokenGenerator.RefreshToken(dto));
         }
     }
 }

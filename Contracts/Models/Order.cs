@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Contracts.Models
 {
@@ -23,6 +19,9 @@ namespace Contracts.Models
 
         public OrderStatus OrderStatus { get; set; }
         public float DeliveryTimer { get; set; }
+
+        public string Comment { get; set; }
+        public string Address { get; set; }
 
     }
 }

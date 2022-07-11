@@ -6,5 +6,6 @@ namespace Contracts.Repository.ModelRepositories.UserRepositories
 {
     public interface IDelivererRepository : IUserBaseRepository<Deliverer>
     {
+        Task<IEnumerable<Deliverer>> GetPendingDeliverers(bool trackChanges);
     }
 }

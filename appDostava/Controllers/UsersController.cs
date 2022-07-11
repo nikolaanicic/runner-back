@@ -10,10 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace appDostava.Controllers
@@ -42,10 +39,20 @@ namespace appDostava.Controllers
         }
 
 
+        [HttpGet]
+        [Authorize(Roles = RolesConstants.All)]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
+        public async Task<IActionResult> GetUserData()
+        {
+            return Ok(await _userService.GetUser(Convert.ToString(HttpContext.Items["currentUser"])));
+        }
+
+
         [HttpPost("register")]
         [ServiceFilter(typeof(DtoValidationFilter<PostUserDto>))]
-        public async Task<IActionResult> Register([FromBody]PostUserDto user)
+        public async Task<IActionResult> Register([FromForm]PostUserDto user)
         {
+            var file = Request.Form.Files[0];
             await _userService.Register(user);
             return NoContent();
         }
@@ -57,6 +64,16 @@ namespace appDostava.Controllers
         public async Task<IActionResult> UpdateUser([FromBody] JsonPatchDocument<UserUpdateDto> patchDocument)
         {
             await _userService.UpdateUser(patchDocument, Convert.ToString(HttpContext.Items["currentUser"]));
+            return NoContent();
+        }
+
+
+        [HttpPost("image")]
+        [Authorize(Roles = RolesConstants.All)]
+        [ServiceFilter(typeof(GetCurrentUserFilter))]
+        public async Task<IActionResult> UpdateProfileImage([FromForm] IFormFile image)
+        {
+            await _userService.UpdateProfileImage(image, Convert.ToString(HttpContext.Items["currentUser"]));
             return NoContent();
         }
     }

@@ -9,10 +9,12 @@ using Contracts.Models;
 using Contracts.Repository;
 using Contracts.Security.Passwords;
 using Contracts.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Contracts.Dtos.Email;
 
 namespace Services.UserService
 {
@@ -28,11 +30,13 @@ namespace Services.UserService
 
         private IImageService _imageService;
         private IPasswordHasher _passwordManager;
+        private IEmailService _emailManager;
 
-        public UserManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper,IImageService imageService,IPasswordHasher passwordManager) : base(logger, repository, mapper)
+        public UserManager(ILoggerManager logger, IRepositoryManager repository, IMapper mapper,IImageService imageService,IPasswordHasher passwordManager,IEmailService email) : base(logger, repository, mapper)
         {
             _imageService = imageService;
             _passwordManager = passwordManager;
+            _emailManager = email;
         }
 
 
@@ -43,6 +47,15 @@ namespace Services.UserService
         public async Task<IEnumerable<GetUserDto>> GetAllUsers()
         {
             return _mapper.Map<IEnumerable<GetUserDto>>(await _repository.Users.GetAllAsync(false));
+        }
+
+        public async Task<GetUserDto> GetUser(string username)
+        {
+            var user = await _repository.Users.GetByUsernameAsync(username, false);
+            if (user == null)
+                throw new NotFoundException($"User {username} is not found");
+
+            return _mapper.Map<GetUserDto>(user);
         }
 
         /// <summary>
@@ -92,9 +105,39 @@ namespace Services.UserService
                 deliverer.RoleId = (long)Roles.Deliverer;
 
                 _repository.Deliverers.Create(deliverer);
+
+                await _emailManager.SendEmail(new Message(deliverer.Email, "Pending request",
+                    $"Dear {deliverer.Name} {deliverer.LastName},\n\t\tYour registration request is being processed.\n\t\tWe will contact you as soon as your request is processed.\n\t\t" +
+                    $"Best regards, Admin team at runner"));
             }
 
             await _repository.SaveAsync();
+        }
+
+
+        /// <summary>
+        /// This method updates users profile image, should overwrite the previous one and save this one with the same path
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        public async Task<string> UpdateProfileImage(IFormFile image, string username)
+        {
+            var user = await _repository.Users.GetByUsernameAsync(username, false);
+
+            if (user == null)
+            {
+                _logger.LogError($"Username {user} doesn't exist");
+                throw new NotFoundException($"Username {user} doesn't exist");
+            }
+            else if(image == null)
+            {
+                _logger.LogError($"Image file is null");
+                throw new BadRequestException($"Image is required");
+            }
+
+            return await _imageService.Save(image, username);
+
         }
 
 
@@ -112,18 +155,19 @@ namespace Services.UserService
                 throw new NotFoundException($"User {username} doesn't exist");
 
 
-            int? passwordIndex = (from x in patchDocument.Operations where x.path.ToLower() == "/password" select patchDocument.Operations.IndexOf(x))
+            int passwordIndex = (from x in patchDocument.Operations where x.path.ToLower() == "/password" select patchDocument.Operations.IndexOf(x))
                 .FirstOrDefault();
 
 
-            if(passwordIndex != null && passwordIndex != -1)
+            if(patchDocument.Operations[passwordIndex].path.ToLower() == "/password")
             {
-                string passwordValue = (string)patchDocument.Operations[passwordIndex.Value].value;
-                patchDocument.Operations[passwordIndex.Value].value = _passwordManager.HashPassword(passwordValue);
+                string passwordValue = (string)patchDocument.Operations[passwordIndex].value;
+                patchDocument.Operations[passwordIndex].value = _passwordManager.HashPassword(passwordValue);
             }
 
             var toPatch = _mapper.Map<UserUpdateDto>(user);
             patchDocument.ApplyTo(toPatch);
+            toPatch.Password = user.PasswordHash;
             _mapper.Map(toPatch, user);
             await _repository.SaveAsync();
         }

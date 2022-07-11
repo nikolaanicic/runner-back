@@ -17,9 +17,9 @@ namespace Contracts.Dtos.User.Post.Validators
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
 
-            string message = "Invalid password. Password must be at least 5 characters long, at most 20. And must contain at least one of : (,),?,!,-,";
+            string message = "Invalid password. Password must be at least 5 characters long, at most 20. And must contain at least one digit.";
 
-            string passwordPattern = @"(\w|[\(\)\?\!\-]|[0-9]){5,20}";
+            string passwordPattern = @"^(?=.*\d)[a-zA-Z\d]{5,13}$";
             string password = (string)Convert.ChangeType(value, typeof(string));
 
             if (password == null || password.Length < 5 || password.Length > 20)

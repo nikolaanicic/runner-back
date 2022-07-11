@@ -19,6 +19,7 @@ namespace Entities.ModelConfigurations
 
             builder.Property(o => o.TotalPrice).IsRequired();
             builder.Property(o => o.DeliveryTimer).IsRequired();
+            builder.Property(o => o.Address).IsRequired();
 
 
             builder.HasOne(o => o.Consumer)

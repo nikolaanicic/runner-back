@@ -12,7 +12,7 @@ namespace Contracts.Dtos.Product.Post
         public float Price { get; set; }
         
         [Required(AllowEmptyStrings = false,ErrorMessage = "Products details are required")]
-        [MaxLength(600,ErrorMessage = "Products details must be 600 characters or shorter")]
+        [MaxLength(400,ErrorMessage = "Products details must be 600 characters or shorter")]
         public string Details { get; set; }
     }
 }

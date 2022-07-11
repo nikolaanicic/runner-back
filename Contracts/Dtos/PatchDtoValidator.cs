@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Contracts.Exceptions;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-
+using System.Reflection;
 
 namespace Contracts.Dtos
 {
@@ -42,8 +44,20 @@ namespace Contracts.Dtos
         /// <returns></returns>
         private List<ValidationAttribute> GetValidationAttribute(string property)
         {
-            var objAttrs = GetType().GetProperty(property)?.GetCustomAttributes(false);
-            return (from x in objAttrs select (ValidationAttribute)x).ToList();
+            try
+            {
+                var objAttrs = GetType().GetProperty(property)?.GetCustomAttributes(false);
+                return (from x in objAttrs select (ValidationAttribute)x).ToList();
+
+            }catch(ArgumentNullException)
+            {
+                throw new BadRequestException($"Unkown patch field {property}");
+            }
+            catch(AmbiguousMatchException)
+            {
+                throw new BadRequestException($"Ambiguous patch field {property}");
+            }
+
         }
 
 
