@@ -47,9 +47,10 @@ namespace appDostava.Controllers
         [Authorize(Roles = RolesConstants.Deliverer)]
         [ServiceFilter(typeof(DtoValidationFilter<CompleteDeliveryDto>))]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
         public async Task<IActionResult> CompleteDelivery([FromBody]CompleteDeliveryDto dto)
         {
-            await _orderService.Deliver(dto, Convert.ToString(HttpContext.Items["currentUser"]));
+            await _orderService.Deliver(dto, Convert.ToString(HttpContext.Items["currentEmail"]));
             return NoContent();
         }
 
@@ -58,9 +59,11 @@ namespace appDostava.Controllers
         [Authorize(Roles = RolesConstants.Consumer)]
         [ServiceFilter(typeof(DtoValidationFilter<PostOrderDto>))]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
+
         public async Task<IActionResult> CreateOrder([FromBody] PostOrderDto newOrder)
         {
-            await _orderService.CreateOrder(newOrder, Convert.ToString(HttpContext.Items["currentUser"]));
+            await _orderService.CreateOrder(newOrder, Convert.ToString(HttpContext.Items["currentEmail"]));
             return NoContent();
         }
 
@@ -68,18 +71,21 @@ namespace appDostava.Controllers
         [HttpGet("completed")]
         [Authorize(Roles = RolesConstants.ConsumerDeliverer)]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
+
         public async Task<IActionResult> GetCompletedOrders()
         {
-            return Ok(await _orderService.GetCompletedByUsernameAsync(Convert.ToString(HttpContext.Items["currentUser"])));
+            return Ok(await _orderService.GetCompletedByUsernameAsync(Convert.ToString(HttpContext.Items["currentEmail"])));
         }
 
         [HttpPatch("accept/{id}")]
         [Authorize(Roles = RolesConstants.Deliverer)]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
 
         public async Task<IActionResult> AcceptOrder(long id)
         {
-            var res = await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentUser"]));
+            var res = await _orderService.AcceptOrderAsync(id, Convert.ToString(HttpContext.Items["currentEmail"]));
             await _hub.Clients.User(res.Item2).SendAsync("pushTimer", new {Timer = res.Item1.Timer, Data = res.Item3 });
             return Ok(res.Item1);
         }

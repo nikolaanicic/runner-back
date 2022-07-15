@@ -42,9 +42,11 @@ namespace appDostava.Controllers
         [HttpGet]
         [Authorize(Roles = RolesConstants.All)]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
+
         public async Task<IActionResult> GetUserData()
         {
-            return Ok(await _userService.GetUser(Convert.ToString(HttpContext.Items["currentUser"])));
+            return Ok(await _userService.GetUser(Convert.ToString(HttpContext.Items["currentEmail"])));
         }
 
 
@@ -60,10 +62,12 @@ namespace appDostava.Controllers
         [HttpPatch("update")]
         [Authorize(Roles = RolesConstants.All)]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
+
         [ServiceFilter(typeof(JsonDocumentValidationFilter<UserUpdateDto>))]
         public async Task<IActionResult> UpdateUser([FromBody] JsonPatchDocument<UserUpdateDto> patchDocument)
         {
-            await _userService.UpdateUser(patchDocument, Convert.ToString(HttpContext.Items["currentUser"]));
+            await _userService.UpdateUser(patchDocument, Convert.ToString(HttpContext.Items["currentEmail"]));
             return NoContent();
         }
 
@@ -71,10 +75,10 @@ namespace appDostava.Controllers
         [HttpPost("image")]
         [Authorize(Roles = RolesConstants.All)]
         [ServiceFilter(typeof(GetCurrentUserFilter))]
+        [ServiceFilter(typeof(GetCurrentEmailFilter))]
         public async Task<IActionResult> UpdateProfileImage([FromForm] IFormFile image)
         {
-            await _userService.UpdateProfileImage(image, Convert.ToString(HttpContext.Items["currentUser"]));
-            return NoContent();
+            return Ok(new { ImagePath = await _userService.UpdateProfileImage(image, Convert.ToString(HttpContext.Items["currentEmail"]))});
         }
     }
 }

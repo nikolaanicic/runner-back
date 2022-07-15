@@ -1,5 +1,6 @@
 ﻿using appDostava.Filters.LogFilter;
 using appDostava.Filters.ValidationFilter;
+using Contracts.Dtos.Login;
 using Contracts.Dtos.User.Post;
 using Contracts.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
@@ -46,6 +47,13 @@ namespace appDostava.Controllers
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenPostDto dto)
         {
             return Ok(await _tokenGenerator.RefreshToken(dto));
+        }
+
+
+        [HttpPost("googleLogin")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
+        {
+            return Ok(await _tokenGenerator.CreateGoogleUser(dto));
         }
     }
 }

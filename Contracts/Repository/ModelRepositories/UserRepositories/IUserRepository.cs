@@ -5,6 +5,6 @@ namespace Contracts.Repository.ModelRepositories.UserRepositories
 {
     public interface IUserRepository : IUserBaseRepository<User>
     {
-        Task<User> GetWithRole(string username, bool trackChanges);
+        Task<User> GetWithRoleByEmailAsync(string email, bool trackChanges);
     }
 }

@@ -33,6 +33,7 @@ using Services.LoggerService;
 using Services.OrderService;
 using Services.ProductService;
 using Services.UserService;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -167,7 +168,10 @@ namespace appDostava.Extensions
                 opt.ClientId = googleAuth["ClientId"];
                 opt.ClientSecret = googleAuth["ClientSecret"];
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
-                
+                opt.Scope.Add("email");
+                opt.Scope.Add("https://www.googleapis.com/auth/user.birthday.read");
+
+
             });
         }
 
@@ -201,6 +205,7 @@ namespace appDostava.Extensions
             .AddScoped<DtoValidationFilter<RefreshTokenPostDto>>()
             .AddScoped<DtoValidationFilter<CompleteDeliveryDto>>()
             .AddScoped<GetCurrentUserFilter>()
+            .AddScoped<GetCurrentEmailFilter>()
             .AddScoped<LogRoute>()
             .AddScoped<IEmailService,EmailManager>();
 

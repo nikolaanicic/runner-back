@@ -15,7 +15,7 @@ namespace Entities.Repository.ModelRepositories.UserRepositores
 
         public async Task<IEnumerable<Deliverer>> GetPendingDeliverers(bool trackChanges)
         {
-            return await base.FindByCondition(x => x.State != ProfileState.APPROVED, trackChanges).ToListAsync();
+            return await base.FindByCondition(x => x.State == ProfileState.PROCESSING, trackChanges).ToListAsync();
         }
     }
 }

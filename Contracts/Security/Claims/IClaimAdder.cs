@@ -1,5 +1,6 @@
 ﻿using Contracts.Dtos.Login;
 using Contracts.Dtos.User.Post;
+using Google.Apis.Auth;
 using System.Threading.Tasks;
 
 namespace Contracts.Security.Claims
@@ -8,5 +9,6 @@ namespace Contracts.Security.Claims
     {
         Task<LoginResponseDto> LogIn(PostUserLogInDto login);
         Task<LoginResponseDto> RefreshToken(RefreshTokenPostDto refreshDto);
+        Task<LoginResponseDto> CreateGoogleUser(GoogleLoginDto dto);
     }
 }

@@ -45,7 +45,7 @@ namespace Services.OrderService
             Order o = new Order();
 
             IEnumerable<Product> products = await _repository.Products.GetByIdsAsync(newOrder.ProductIds,false);
-            var user = await _repository.Consumers.GetByUsernameAsync(consumer,false);
+            var user = await _repository.Consumers.GetByEmailAsync(consumer,false);
 
             if (user == null)
                 throw new NotFoundException($"User {consumer} doesn't exist");
@@ -83,7 +83,7 @@ namespace Services.OrderService
         {
 
             var order = await _repository.Orders.GetByIdAsync(id, true);
-            var user = await _repository.Deliverers.GetByUsernameAsync(deliverer, true);
+            var user = await _repository.Deliverers.GetByEmailAsync(deliverer, true);
 
             if (order == null)
                 throw new NotFoundException($"Requested order doesn't exist");
@@ -132,7 +132,7 @@ namespace Services.OrderService
         /// <returns></returns>
         public async Task<IEnumerable<GetOrderDto>> GetCompletedByUsernameAsync(string username)
         {
-            var user = await _repository.Users.GetByUsernameAsync(username, false);
+            var user = await _repository.Users.GetByEmailAsync(username, false);
 
             if (user == null)
                 throw new NotFoundException($"User {username} doesn't exist.");
@@ -175,7 +175,7 @@ namespace Services.OrderService
         /// <returns></returns>
         public async Task Deliver(CompleteDeliveryDto dto, string deliverer)
         {
-            var user = await _repository.Deliverers.GetByUsernameAsync(deliverer, true);
+            var user = await _repository.Deliverers.GetByEmailAsync(deliverer, true);
 
             if (user == null)
                 throw new NotFoundException($"Deliverer {deliverer} is not found");

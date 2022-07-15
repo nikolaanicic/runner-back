@@ -12,9 +12,9 @@ namespace Contracts.Services
     {
         Task<IEnumerable<GetUserDto>> GetAllUsers();
         Task Register(PostUserDto newUser);
-        Task UpdateUser(JsonPatchDocument<UserUpdateDto> patchDocument, string username);
-        Task<string> UpdateProfileImage(IFormFile image, string username);
-        Task<GetUserDto> GetUser(string username);
+        Task UpdateUser(JsonPatchDocument<UserUpdateDto> patchDocument, string email);
+        Task<string> UpdateProfileImage(IFormFile image, string email);
+        Task<GetUserDto> GetUser(string email);
     
     }
 }

@@ -49,11 +49,11 @@ namespace Services.UserService
             return _mapper.Map<IEnumerable<GetUserDto>>(await _repository.Users.GetAllAsync(false));
         }
 
-        public async Task<GetUserDto> GetUser(string username)
+        public async Task<GetUserDto> GetUser(string email)
         {
-            var user = await _repository.Users.GetByUsernameAsync(username, false);
+            var user = await _repository.Users.GetByEmailAsync(email, false);
             if (user == null)
-                throw new NotFoundException($"User {username} is not found");
+                throw new NotFoundException($"User with the email {email} is not found");
 
             return _mapper.Map<GetUserDto>(user);
         }
@@ -121,9 +121,9 @@ namespace Services.UserService
         /// <param name="image"></param>
         /// <param name="username"></param>
         /// <returns></returns>
-        public async Task<string> UpdateProfileImage(IFormFile image, string username)
+        public async Task<string> UpdateProfileImage(IFormFile image, string email)
         {
-            var user = await _repository.Users.GetByUsernameAsync(username, false);
+            var user = await _repository.Users.GetByEmailAsync(email, true);
 
             if (user == null)
             {
@@ -136,8 +136,11 @@ namespace Services.UserService
                 throw new BadRequestException($"Image is required");
             }
 
-            return await _imageService.Save(image, username);
-
+            await _imageService.RemoveImage(email);
+            string newPath = await _imageService.Save(image, email);
+            user.ImagePath = newPath;
+            await _repository.SaveAsync();
+            return newPath;
         }
 
 
@@ -147,12 +150,12 @@ namespace Services.UserService
         /// <param name="patchDocument"></param>
         /// <param name="username"></param>
         /// <returns></returns>
-        public async Task UpdateUser(JsonPatchDocument<UserUpdateDto> patchDocument, string username)
+        public async Task UpdateUser(JsonPatchDocument<UserUpdateDto> patchDocument, string email)
         {
-            var user = await _repository.Users.GetByUsernameAsync(username, true);
+            var user = await _repository.Users.GetByEmailAsync(email, true);
 
             if (user == null)
-                throw new NotFoundException($"User {username} doesn't exist");
+                throw new NotFoundException($"User with the email {email} doesn't exist");
 
 
             int passwordIndex = (from x in patchDocument.Operations where x.path.ToLower() == "/password" select patchDocument.Operations.IndexOf(x))

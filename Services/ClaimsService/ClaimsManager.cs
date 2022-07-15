@@ -6,6 +6,8 @@ using Contracts.Models;
 using Contracts.Repository;
 using Contracts.Security.Claims;
 using Contracts.Security.Passwords;
+using Contracts.Services;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -29,12 +31,13 @@ namespace Services.ClaimsService
 
         private IPasswordChecker _passwordChecker;
         private IConfiguration _configuration;
+        private IUserService _userManager;
 
-        public ClaimsManager(ILoggerManager logger, IRepositoryManager repository,IPasswordChecker checker,IConfiguration configuration) : base(logger, repository)
+        public ClaimsManager(ILoggerManager logger, IRepositoryManager repository,IPasswordChecker checker,IConfiguration configuration,IUserService userManager) : base(logger, repository)
         {
             _passwordChecker = checker;
             _configuration = configuration;
-
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -50,6 +53,12 @@ namespace Services.ClaimsService
             return currentContext?.User?.Claims.First(c => c.Type == ClaimTypes.Name).Value ?? string.Empty;
         }
 
+        public string GetCurrentEmail(HttpContext currentContext)
+        {
+            return currentContext?.User?.Claims.First(c => c.Type == ClaimTypes.Email).Value ?? string.Empty;
+        }
+
+
 
         /// <summary>
         /// This method logs users in i.e. it returns the token if the user exists and the password is correct
@@ -58,12 +67,17 @@ namespace Services.ClaimsService
         /// <returns></returns>
         public async Task<LoginResponseDto> LogIn(PostUserLogInDto login)
         {
-            var user = await _repository.Users.GetWithRole(login.Username, true);
+            var user = await _repository.Users.GetWithRoleByEmailAsync(login.Email, true);
 
             if (user == null)
-                throw new NotFoundException($"User {login.Username} doesn't exist");
+                throw new NotFoundException($"User {login.Email} doesn't exist");
             else if (await _passwordChecker.CheckPassword(login.Password, user.PasswordHash) == false)
                 throw new UnauthorizedException($"Invalid password");
+            else if (user.Role.Rolename == RolesConstants.Deliverer && (user as Deliverer).State == ProfileState.DENIED)
+                throw new UnauthorizedException($"Your registration request has been denied");
+            else if (user.Role.Rolename == RolesConstants.Deliverer && (user as Deliverer).State == ProfileState.PROCESSING)
+                throw new UnauthorizedException($"Your registration request has not been approved yet");
+
 
             string refreshToken = CreateRefreshToken();
             user.RefreshToken = refreshToken;
@@ -90,7 +104,7 @@ namespace Services.ClaimsService
             var tokenOptions = new JwtSecurityToken
                 (
                 issuer: _configuration["ValidIssuer"], 
-                claims: CreateClaims(user.Username, user.Role.Rolename,user.Id),
+                claims: CreateClaims(user.Username, user.Role.Rolename,user.Id,user.Email),
                 expires: DateTime.Now.AddMinutes(int.Parse(_configuration["TokenValidityMinutes"])),
                 signingCredentials:signingCredentials);
 
@@ -123,12 +137,14 @@ namespace Services.ClaimsService
         /// <param name="username"></param>
         /// <param name="userRole"></param>
         /// <returns></returns>
-        private List<Claim> CreateClaims(string username, string userRole,long id )
+        private List<Claim> CreateClaims(string username, string userRole,long id,string email)
         {
-            if(userRole == RolesConstants.Admin || userRole == RolesConstants.Deliverer)
-                return new List<Claim> { new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, userRole)};
-            return new List<Claim> { new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, userRole), new Claim(ClaimTypes.NameIdentifier,id.ToString())};
-
+            var claims = new List<Claim>{ new Claim(ClaimTypes.Name, username), new Claim(ClaimTypes.Role, userRole),new Claim(ClaimTypes.Email,email)};
+            if (userRole == RolesConstants.Consumer)
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, id.ToString()));
+            }
+            return claims;
         }
 
 
@@ -143,18 +159,18 @@ namespace Services.ClaimsService
         public async Task<LoginResponseDto> RefreshToken(RefreshTokenPostDto refreshDto)
         {
             var claims = this.GetPrincipalFromExpiredToken(refreshDto.ExpiredToken).Claims.ToList();
-            string username = string.Empty, role = string.Empty;
+            string email = string.Empty, role = string.Empty;
 
             try
             {
-                username = claims[0].Value;
+                email = claims[2].Value;
                 role = claims[1].Value;
             }catch
             {
                 throw new SecurityException("Invalid or malformed refresh token");
             }
 
-            var user = await _repository.Users.GetWithRole(username, true);
+            var user = await _repository.Users.GetWithRoleByEmailAsync(email, true);
 
             if(user == null || user.Role.Rolename != role || user.RefreshToken != refreshDto.RefreshToken)
             {
@@ -165,9 +181,14 @@ namespace Services.ClaimsService
             user.RefreshToken = newRefreshToken;
             await _repository.SaveAsync();
 
-            return new LoginResponseDto { Token = CreateToken(user), RefreshToken = newRefreshToken, Role = role };
+            return CreateResponse(user);
 
 
+        }
+
+        private LoginResponseDto CreateResponse(User user)
+        {
+            return new LoginResponseDto { Token = CreateToken(user), RefreshToken = user.RefreshToken, Role = user.Role.Rolename };
         }
 
 
@@ -192,6 +213,104 @@ namespace Services.ClaimsService
 
 
             return principal;
+        }
+
+        public async Task<LoginResponseDto> CreateGoogleUser(GoogleLoginDto dto)
+        {
+            var payload = await VerifyGoogleToken(dto);
+            if (payload == null)
+                throw new BadRequestException("Invalid google authentication token");
+
+            var email = payload.Email;
+            var user = await _repository.Users.GetWithRoleByEmailAsync(email, false);
+
+            if (user != null)
+                return CreateResponse(user);
+
+            string username = string.Empty;
+
+            do
+            {
+                username = GenerateRandomUsername();
+
+            } while ((await _repository.Users.GetByUsernameAsync(username, false) != null));
+
+            var newUserDto = ParsePayloadToDto(payload);
+            newUserDto.Email = email;
+            newUserDto.Username = username;
+
+            await _userManager.Register(newUserDto);
+
+            user.RefreshToken = CreateRefreshToken();
+            await _repository.SaveAsync();
+
+            return CreateResponse(user);
+
+        }
+
+
+        private PostUserDto ParsePayloadToDto(GoogleJsonWebSignature.Payload payload)
+        {
+            var password = GenerateRandomPassword();
+            var name = payload.GivenName;
+            var lastName = payload.FamilyName;
+            var rolename = RolesConstants.Consumer;
+            var birthdate = new DateTime(1999, 7, 12);
+            var address = "15302 Korenita";
+
+            var newUserDto = new PostUserDto
+            {
+                Address = address,
+                DateOfBirth = birthdate,
+                Image = null,
+                LastName = lastName,
+                Name = name,
+                Password = password,
+                RoleName = rolename,
+            };
+
+            return newUserDto;
+        }
+
+        private string GenerateRandomString()
+        {
+            var uname = CreateRefreshToken();
+            if (uname.Length > 8)
+                return uname.Substring(0, 8);
+            return uname;
+        }
+
+
+        private string GenerateRandomUsername()
+        {
+            return GenerateRandomString();
+        }
+
+        private string GenerateRandomPassword()
+        {
+            return GenerateRandomString() + "12";
+        }
+
+
+
+        private async Task<GoogleJsonWebSignature.Payload> VerifyGoogleToken(GoogleLoginDto dto)
+        {
+            try
+            {
+                var googleAuth = _configuration.GetSection("Authentication:Google");
+
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>() { googleAuth["ClientId"] }
+
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+                return payload;
+            }catch
+            {
+                return null;
+            }
         }
     }
 }

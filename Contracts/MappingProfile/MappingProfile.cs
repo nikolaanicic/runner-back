@@ -24,8 +24,8 @@ namespace Contracts.MappingProfile
             CreateMap<User, UserUpdateDto>();
             CreateMap<UserUpdateDto, User>().ForMember(u=>u.PasswordHash,op=>op.MapFrom(dto=>dto.Password));
             CreateMap<Order, GetOrderDto>()
-                .ForMember(dto => dto.Consumer, op => op.MapFrom(o => o.Consumer.Username))
-                .ForMember(dto => dto.Deliverer, op => op.MapFrom(o => o.Deliverer.Username ?? string.Empty));
+                .ForMember(dto => dto.Consumer, op => op.MapFrom(o => $"{o.Consumer.Name} {o.Consumer.LastName}"))
+                .ForMember(dto => dto.Deliverer, op => op.MapFrom(o => $"{o.Deliverer.Name} {o.Deliverer.LastName}" ?? string.Empty));
         
         }
     }

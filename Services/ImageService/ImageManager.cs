@@ -4,6 +4,7 @@ using Contracts.Logger;
 using Contracts.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -32,11 +33,11 @@ namespace Services.ImageService
         /// <param name="username"></param>
         /// <returns></returns>
 
-        public async Task<string> Get(string username)
+        public async Task<string> Get(string email)
         {
-            var user = await _repository.Users.GetByUsernameAsync(username, false);
+            var user = await _repository.Users.GetByEmailAsync(email, false);
             if (user == null)
-                throw new NotFoundException($"User {username} is not found");
+                throw new NotFoundException($"User {email} is not found");
 
             return user.ImagePath;
         }
@@ -50,12 +51,18 @@ namespace Services.ImageService
         /// <param name="image"></param>
         /// <param name="username"></param>
         /// <returns></returns>
-        public async Task<string> Save(IFormFile image, string username)
+        public async Task<string> Save(IFormFile image, string email)
         {
-            string relativePath = Path.Combine(_configuration["ImagesRelativePath"], username) + _configuration["ImageEncodingFormat"];
-            string fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
-            
-            if(image != null && image.Length > 0)
+            string relativePath = string.Empty;
+            string fullPath = string.Empty;
+            do
+            {
+                relativePath = Path.Combine(_configuration["ImagesRelativePath"], RandomPathPart()) + _configuration["ImageEncodingFormat"];
+                fullPath = MakeImageFullPath(relativePath);
+            } while (File.Exists(fullPath));
+
+
+            if (image != null && image.Length > 0)
             {
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
@@ -64,6 +71,41 @@ namespace Services.ImageService
             }
 
             return relativePath;
+        }
+
+        public async Task RemoveImage(string email)
+        {
+            var user = await _repository.Users.GetByEmailAsync(email, false);
+            if (user == null)
+                throw new NotFoundException($"User with the email {email} is not found");
+
+            var fullPath = MakeImageFullPath(user.ImagePath);
+
+            if(File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
+        }
+
+
+        private string MakeImageFullPath(string relativePath)
+        {
+            return Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+        }
+
+
+        private string RandomPathPart()
+        {
+            string charset = _configuration["ImagePathCharSet"];
+            var chars = new char[16];
+            var random = new Random();
+
+            for(int i=0;i<chars.Length;i++)
+            {
+                chars[i] = charset[random.Next(chars.Length)];
+            }
+
+            return new string(chars);
         }
     }
 }
