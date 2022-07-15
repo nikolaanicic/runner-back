@@ -32,12 +32,14 @@ namespace Services.ClaimsService
         private IPasswordChecker _passwordChecker;
         private IConfiguration _configuration;
         private IUserService _userManager;
+        private IEmailService _emailManager;
 
-        public ClaimsManager(ILoggerManager logger, IRepositoryManager repository,IPasswordChecker checker,IConfiguration configuration,IUserService userManager) : base(logger, repository)
+        public ClaimsManager(ILoggerManager logger, IRepositoryManager repository,IPasswordChecker checker,IConfiguration configuration,IUserService userManager,IEmailService emailManager) : base(logger, repository)
         {
             _passwordChecker = checker;
             _configuration = configuration;
             _userManager = userManager;
+            _emailManager = emailManager;
         }
 
         /// <summary>
@@ -57,7 +59,6 @@ namespace Services.ClaimsService
         {
             return currentContext?.User?.Claims.First(c => c.Type == ClaimTypes.Email).Value ?? string.Empty;
         }
-
 
 
         /// <summary>
@@ -125,6 +126,21 @@ namespace Services.ClaimsService
                 rng.GetBytes(rand);
             }
             return Convert.ToBase64String(rand);
+        }
+
+
+        private string GenerateRandomString(char[] charset,int length)
+        {
+            var chars = new char[length];
+            var random = new Random();
+
+            for(int i=0;i<length;i++)
+            {
+                chars[i] = charset[random.Next(length)];
+            }
+
+            return new string(chars);
+
         }
 
 
@@ -223,9 +239,17 @@ namespace Services.ClaimsService
 
             var email = payload.Email;
             var user = await _repository.Users.GetWithRoleByEmailAsync(email, false);
+            
+            if(user != null)
+            {
+                if (user.Role.Rolename == RolesConstants.Deliverer && (user as Deliverer).State == ProfileState.DENIED)
+                    throw new UnauthorizedException($"Your registration request has been denied");
+                else if (user.Role.Rolename == RolesConstants.Deliverer && (user as Deliverer).State == ProfileState.PROCESSING)
+                    throw new UnauthorizedException($"Your registration request has not been approved yet");
+                else
+                    return CreateResponse(user);
+            }
 
-            if (user != null)
-                return CreateResponse(user);
 
             string username = string.Empty;
 
@@ -240,9 +264,12 @@ namespace Services.ClaimsService
             newUserDto.Username = username;
 
             await _userManager.Register(newUserDto);
-
+            user = await _repository.Users.GetWithRoleByEmailAsync(email, true);
             user.RefreshToken = CreateRefreshToken();
             await _repository.SaveAsync();
+
+            await _emailManager.SendEmail(new Contracts.Dtos.Email.Message(email, "Registration", $"Dear {user.Name} {user.LastName}\n\t\t You have registered at runner with Google and have been assigned randomly generated password and username.\n\t\t" +
+                $"Your username is:{user.Username}\n\t\tYour password is:{newUserDto.Password}\n\n\t\tBest regards. Admin team at runner"));
 
             return CreateResponse(user);
 
@@ -272,23 +299,16 @@ namespace Services.ClaimsService
             return newUserDto;
         }
 
-        private string GenerateRandomString()
-        {
-            var uname = CreateRefreshToken();
-            if (uname.Length > 8)
-                return uname.Substring(0, 8);
-            return uname;
-        }
-
 
         private string GenerateRandomUsername()
         {
-            return GenerateRandomString();
+           
+            return GenerateRandomString("abcdefghijklmnopqrstwhgbd1234567890".ToCharArray(),10);
         }
 
         private string GenerateRandomPassword()
         {
-            return GenerateRandomString() + "12";
+            return GenerateRandomString("abcdefghijklmnopqrstwhgbd1234567890".ToCharArray(),6) + "12";
         }
 
 
